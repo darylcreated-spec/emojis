@@ -1,11 +1,10 @@
 # StickerBoom 🇹🇹 — 98 Authentic Trinidad & Tobago Emojis & Stickers
 
 **Live App:** [https://stickerboom.vercel.app](https://stickerboom.vercel.app)  
-**GitHub Repository:** [https://github.com/darylcreated-spec/emojis](https://github.com/darylcreated-spec/emojis)
+**GitHub Repository:** [https://github.com/darylcreated-spec/emojis](https://github.com/darylcreated-spec/emojis)  
+**Contact:** [daryl.created@gmail.com](mailto:daryl.created@gmail.com)
 
-**StickerBoom 🇹🇹** is a mobile-browser-optimized Progressive Web App (PWA) and multi-platform sticker studio featuring **98 authentic Trinidad & Tobago cultural emojis and slang stickers across 8 themed packs**.
-
-Built for **WhatsApp, Instagram Stories/DMs, TikTok, iMessage, Telegram, Messenger, X, and Discord** across iOS, Android, and Desktop—with **zero AI spindle** (100% instant local `512×512` WebP & Transparent PNG engine).
+**StickerBoom 🇹🇹** is a mobile-browser-optimized Progressive Web App (PWA) and multi-platform sticker studio featuring **98 authentic Trinidad & Tobago cultural emojis and slang stickers across 8 themed packs**, built for **WhatsApp, Instagram Stories/DMs, TikTok, iMessage, Telegram, Messenger, X, and Discord** across iOS, Android, and Desktop.
 
 ---
 

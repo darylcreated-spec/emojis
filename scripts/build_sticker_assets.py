@@ -473,7 +473,7 @@ def main():
                 "name": f"StickerBoom: {pack['name']}"[:30],
                 "publisher": "StickerBoom 🇹🇹",
                 "tray_image_file": os.path.basename(tray_path),
-                "publisher_email": "hello@stickerboom.vercel.app",
+                "publisher_email": "daryl.created@gmail.com",
                 "publisher_website": "https://stickerboom.vercel.app",
                 "privacy_policy_website": "https://stickerboom.vercel.app",
                 "license_agreement_website": "https://stickerboom.vercel.app",
