@@ -1,0 +1,910 @@
+{
+  "android_play_store_link": "",
+  "ios_app_store_link": "",
+  "sticker_packs": [
+    {
+      "identifier": "pack-1-social-slang",
+      "name": "StickerBoom: Ent?! & Comment S",
+      "publisher": "StickerBoom 🇹🇹",
+      "tray_image_file": "pack-1-social-slang.png",
+      "publisher_email": "hello@stickerboom.tt",
+      "publisher_website": "https://stickerboom.tt",
+      "privacy_policy_website": "https://stickerboom.tt/privacy",
+      "license_agreement_website": "https://stickerboom.tt/license",
+      "image_data_version": "1",
+      "avoid_cache": false,
+      "animated_sticker_pack": false,
+      "stickers": [
+        {
+          "image_file": "ent.webp",
+          "emojis": [
+            "☕",
+            "😏",
+            "💯"
+          ]
+        },
+        {
+          "image_file": "steups.webp",
+          "emojis": [
+            "😒",
+            "🙄",
+            "😤"
+          ]
+        },
+        {
+          "image_file": "ah-eh-able.webp",
+          "emojis": [
+            "😩",
+            "😂",
+            "🪭"
+          ]
+        },
+        {
+          "image_file": "look-trouble.webp",
+          "emojis": [
+            "🍿",
+            "👀",
+            "🤭"
+          ]
+        },
+        {
+          "image_file": "mamaguy.webp",
+          "emojis": [
+            "😍",
+            "😉",
+            "🍯"
+          ]
+        },
+        {
+          "image_file": "pure-bazodee.webp",
+          "emojis": [
+            "😵‍💫",
+            "🌺",
+            "💕"
+          ]
+        },
+        {
+          "image_file": "weyyyy.webp",
+          "emojis": [
+            "😱",
+            "🔊",
+            "🔥"
+          ]
+        },
+        {
+          "image_file": "scene.webp",
+          "emojis": [
+            "😎",
+            "🫡",
+            "👌"
+          ]
+        },
+        {
+          "image_file": "fuh-real.webp",
+          "emojis": [
+            "🤨",
+            "🧐",
+            "❓"
+          ]
+        },
+        {
+          "image_file": "doh-tote.webp",
+          "emojis": [
+            "🎒",
+            "🤷",
+            "😂"
+          ]
+        },
+        {
+          "image_file": "killing-me-dead.webp",
+          "emojis": [
+            "💀",
+            "🤣",
+            "😭"
+          ]
+        },
+        {
+          "image_file": "rel-bess.webp",
+          "emojis": [
+            "👌",
+            "🔥",
+            "🇹🇹"
+          ]
+        },
+        {
+          "image_file": "cyah-take-dat.webp",
+          "emojis": [
+            "✋",
+            "🙅",
+            "😤"
+          ]
+        },
+        {
+          "image_file": "chupidee.webp",
+          "emojis": [
+            "🤪",
+            "🤡",
+            "💫"
+          ]
+        },
+        {
+          "image_file": "freshwater-yankee.webp",
+          "emojis": [
+            "✈️",
+            "🗽",
+            "😂"
+          ]
+        },
+        {
+          "image_file": "just-picong.webp",
+          "emojis": [
+            "😜",
+            "🔥",
+            "🤝"
+          ]
+        }
+      ]
+    },
+    {
+      "identifier": "pack-2-reactions-drama",
+      "name": "StickerBoom: Maco, Horn & Taba",
+      "publisher": "StickerBoom 🇹🇹",
+      "tray_image_file": "pack-2-reactions-drama.png",
+      "publisher_email": "hello@stickerboom.tt",
+      "publisher_website": "https://stickerboom.tt",
+      "privacy_policy_website": "https://stickerboom.tt/privacy",
+      "license_agreement_website": "https://stickerboom.tt/license",
+      "image_data_version": "1",
+      "avoid_cache": false,
+      "animated_sticker_pack": false,
+      "stickers": [
+        {
+          "image_file": "maco.webp",
+          "emojis": [
+            "👀",
+            "🕵️",
+            "🪟"
+          ]
+        },
+        {
+          "image_file": "horning.webp",
+          "emojis": [
+            "😈",
+            "🐂",
+            "💔"
+          ]
+        },
+        {
+          "image_file": "real-tabanca.webp",
+          "emojis": [
+            "😭",
+            "💔",
+            "🥺"
+          ]
+        },
+        {
+          "image_file": "wha-appen.webp",
+          "emojis": [
+            "🤜",
+            "🤛",
+            "🇹🇹"
+          ]
+        },
+        {
+          "image_file": "bacchanal.webp",
+          "emojis": [
+            "🎊",
+            "🎭",
+            "🔥"
+          ]
+        },
+        {
+          "image_file": "carnival-tabanca.webp",
+          "emojis": [
+            "🎭",
+            "😢",
+            "🇹🇹"
+          ]
+        },
+        {
+          "image_file": "yuh-too-fas.webp",
+          "emojis": [
+            "☝️",
+            "🤨",
+            "🙅"
+          ]
+        },
+        {
+          "image_file": "doh-make-joke.webp",
+          "emojis": [
+            "😲",
+            "🤯",
+            "⚠️"
+          ]
+        },
+        {
+          "image_file": "vex-pepper.webp",
+          "emojis": [
+            "😡",
+            "🌶️",
+            "💢"
+          ]
+        },
+        {
+          "image_file": "kicksin.webp",
+          "emojis": [
+            "👟",
+            "😆",
+            "🎉"
+          ]
+        },
+        {
+          "image_file": "mauvais-langue.webp",
+          "emojis": [
+            "🗣️",
+            "🐍",
+            "🤫"
+          ]
+        },
+        {
+          "image_file": "owah.webp",
+          "emojis": [
+            "🤷",
+            "🤨",
+            "💥"
+          ]
+        }
+      ]
+    },
+    {
+      "identifier": "pack-3-food-belly",
+      "name": "StickerBoom: Bess Belly & Doub",
+      "publisher": "StickerBoom 🇹🇹",
+      "tray_image_file": "pack-3-food-belly.png",
+      "publisher_email": "hello@stickerboom.tt",
+      "publisher_website": "https://stickerboom.tt",
+      "privacy_policy_website": "https://stickerboom.tt/privacy",
+      "license_agreement_website": "https://stickerboom.tt/license",
+      "image_data_version": "1",
+      "avoid_cache": false,
+      "animated_sticker_pack": false,
+      "stickers": [
+        {
+          "image_file": "doubles-3d.webp",
+          "emojis": [
+            "🌮",
+            "🤤",
+            "🇹🇹"
+          ]
+        },
+        {
+          "image_file": "slight-pepper.webp",
+          "emojis": [
+            "🌶️",
+            "🔥",
+            "🥵"
+          ]
+        },
+        {
+          "image_file": "doubles-lean.webp",
+          "emojis": [
+            "🕺",
+            "🌮",
+            "😂"
+          ]
+        },
+        {
+          "image_file": "bake-and-shark.webp",
+          "emojis": [
+            "🦈",
+            "🍔",
+            "🏖️"
+          ]
+        },
+        {
+          "image_file": "buss-up-shut.webp",
+          "emojis": [
+            "🫓",
+            "🍛",
+            "😋"
+          ]
+        },
+        {
+          "image_file": "sunday-lunch.webp",
+          "emojis": [
+            "🍽️",
+            "🧀",
+            "🍗"
+          ]
+        },
+        {
+          "image_file": "sunday-coma.webp",
+          "emojis": [
+            "😴",
+            "💤",
+            "🛋️"
+          ]
+        },
+        {
+          "image_file": "pelau-pot.webp",
+          "emojis": [
+            "🍲",
+            "🍗",
+            "🥥"
+          ]
+        },
+        {
+          "image_file": "corn-soup.webp",
+          "emojis": [
+            "🌽",
+            "🥣",
+            "🌙"
+          ]
+        },
+        {
+          "image_file": "pholourie.webp",
+          "emojis": [
+            "🧆",
+            "🍯",
+            "😋"
+          ]
+        },
+        {
+          "image_file": "crix-and-cheese.webp",
+          "emojis": [
+            "🧀",
+            "🥤",
+            "🍪"
+          ]
+        },
+        {
+          "image_file": "savannah-coconut.webp",
+          "emojis": [
+            "🥥",
+            "🌴",
+            "💧"
+          ]
+        }
+      ]
+    },
+    {
+      "identifier": "pack-4-liming-allfours",
+      "name": "StickerBoom: Hang Jack & Stres",
+      "publisher": "StickerBoom 🇹🇹",
+      "tray_image_file": "pack-4-liming-allfours.png",
+      "publisher_email": "hello@stickerboom.tt",
+      "publisher_website": "https://stickerboom.tt",
+      "privacy_policy_website": "https://stickerboom.tt/privacy",
+      "license_agreement_website": "https://stickerboom.tt/license",
+      "image_data_version": "1",
+      "avoid_cache": false,
+      "animated_sticker_pack": false,
+      "stickers": [
+        {
+          "image_file": "hang-jack.webp",
+          "emojis": [
+            "🃏",
+            "♠️",
+            "💥"
+          ]
+        },
+        {
+          "image_file": "stress-free-liming.webp",
+          "emojis": [
+            "🍺",
+            "🥥",
+            "🏖️"
+          ]
+        },
+        {
+          "image_file": "sou-sou-drop.webp",
+          "emojis": [
+            "💵",
+            "🤑",
+            "🎉"
+          ]
+        },
+        {
+          "image_file": "bullseye-allfours.webp",
+          "emojis": [
+            "🎯",
+            "😭",
+            "🃏"
+          ]
+        },
+        {
+          "image_file": "puncheon-fire.webp",
+          "emojis": [
+            "🥃",
+            "🔥",
+            "🐉"
+          ]
+        },
+        {
+          "image_file": "rum-punch.webp",
+          "emojis": [
+            "🍹",
+            "🍒",
+            "🇹🇹"
+          ]
+        },
+        {
+          "image_file": "ddi-boat.webp",
+          "emojis": [
+            "🚤",
+            "🏝️",
+            "🌊"
+          ]
+        },
+        {
+          "image_file": "river-lime.webp",
+          "emojis": [
+            "🏞️",
+            "🔥",
+            "🍲"
+          ]
+        },
+        {
+          "image_file": "bess-cutters.webp",
+          "emojis": [
+            "🍖",
+            "🌶️",
+            "🍺"
+          ]
+        },
+        {
+          "image_file": "potcake-dog.webp",
+          "emojis": [
+            "🐕",
+            "🐾",
+            "❤️"
+          ]
+        },
+        {
+          "image_file": "one-for-de-road.webp",
+          "emojis": [
+            "🍻",
+            "🕛",
+            "😂"
+          ]
+        },
+        {
+          "image_file": "cricket-six.webp",
+          "emojis": [
+            "🏏",
+            "⚽",
+            "🇹🇹"
+          ]
+        }
+      ]
+    },
+    {
+      "identifier": "pack-5-carnival-mas",
+      "name": "StickerBoom: Mas, Soca & Steel",
+      "publisher": "StickerBoom 🇹🇹",
+      "tray_image_file": "pack-5-carnival-mas.png",
+      "publisher_email": "hello@stickerboom.tt",
+      "publisher_website": "https://stickerboom.tt",
+      "privacy_policy_website": "https://stickerboom.tt/privacy",
+      "license_agreement_website": "https://stickerboom.tt/license",
+      "image_data_version": "1",
+      "avoid_cache": false,
+      "animated_sticker_pack": false,
+      "stickers": [
+        {
+          "image_file": "steelpan-3d.webp",
+          "emojis": [
+            "🥁",
+            "🎶",
+            "🇹🇹"
+          ]
+        },
+        {
+          "image_file": "carnival-mas-3d.webp",
+          "emojis": [
+            "👑",
+            "💃",
+            "🎉"
+          ]
+        },
+        {
+          "image_file": "dutty-jouvert.webp",
+          "emojis": [
+            "🎨",
+            "🌅",
+            "🕺"
+          ]
+        },
+        {
+          "image_file": "wait-for-riddim.webp",
+          "emojis": [
+            "🔊",
+            "🎶",
+            "✋"
+          ]
+        },
+        {
+          "image_file": "wave-yuh-rag.webp",
+          "emojis": [
+            "🚩",
+            "🇹🇹",
+            "🙌"
+          ]
+        },
+        {
+          "image_file": "moko-jumbie.webp",
+          "emojis": [
+            "🎪",
+            "✨",
+            "🇹🇹"
+          ]
+        },
+        {
+          "image_file": "midnight-robber.webp",
+          "emojis": [
+            "🤠",
+            "💀",
+            "🎭"
+          ]
+        },
+        {
+          "image_file": "dame-lorraine.webp",
+          "emojis": [
+            "🪭",
+            "👗",
+            "💃"
+          ]
+        },
+        {
+          "image_file": "blue-devil.webp",
+          "emojis": [
+            "😈",
+            "🔥",
+            "💙"
+          ]
+        },
+        {
+          "image_file": "jab-molassie.webp",
+          "emojis": [
+            "⛓️",
+            "😈",
+            "🥁"
+          ]
+        },
+        {
+          "image_file": "pierrot-grenade.webp",
+          "emojis": [
+            "🃏",
+            "📚",
+            "🎭"
+          ]
+        },
+        {
+          "image_file": "tassa-chutney.webp",
+          "emojis": [
+            "🥁",
+            "🔥",
+            "💃"
+          ]
+        }
+      ]
+    },
+    {
+      "identifier": "pack-6-folklore",
+      "name": "StickerBoom: Soucouyant & Papa",
+      "publisher": "StickerBoom 🇹🇹",
+      "tray_image_file": "pack-6-folklore.png",
+      "publisher_email": "hello@stickerboom.tt",
+      "publisher_website": "https://stickerboom.tt",
+      "privacy_policy_website": "https://stickerboom.tt/privacy",
+      "license_agreement_website": "https://stickerboom.tt/license",
+      "image_data_version": "1",
+      "avoid_cache": false,
+      "animated_sticker_pack": false,
+      "stickers": [
+        {
+          "image_file": "soucouyant.webp",
+          "emojis": [
+            "🔥",
+            "👵",
+            "🌙"
+          ]
+        },
+        {
+          "image_file": "salt-in-mortar.webp",
+          "emojis": [
+            "🧂",
+            "😱",
+            "🔥"
+          ]
+        },
+        {
+          "image_file": "la-diablesse.webp",
+          "emojis": [
+            "👒",
+            "👠",
+            "🌙"
+          ]
+        },
+        {
+          "image_file": "mama-dlo.webp",
+          "emojis": [
+            "🐍",
+            "🪮",
+            "🌊"
+          ]
+        },
+        {
+          "image_file": "papa-bois.webp",
+          "emojis": [
+            "🦌",
+            "🌳",
+            "📯"
+          ]
+        },
+        {
+          "image_file": "douen.webp",
+          "emojis": [
+            "👒",
+            "👣",
+            "🎋"
+          ]
+        },
+        {
+          "image_file": "lagahoo.webp",
+          "emojis": [
+            "⛓️",
+            "🐺",
+            "🌑"
+          ]
+        },
+        {
+          "image_file": "no-maljo.webp",
+          "emojis": [
+            "🧿",
+            "🍾",
+            "✨"
+          ]
+        },
+        {
+          "image_file": "bush-tea.webp",
+          "emojis": [
+            "🍵",
+            "🌿",
+            "👵"
+          ]
+        },
+        {
+          "image_file": "silk-cotton-tree.webp",
+          "emojis": [
+            "🌳",
+            "✨",
+            "👻"
+          ]
+        }
+      ]
+    },
+    {
+      "identifier": "pack-7-festivals",
+      "name": "StickerBoom: Parang, Divali, E",
+      "publisher": "StickerBoom 🇹🇹",
+      "tray_image_file": "pack-7-festivals.png",
+      "publisher_email": "hello@stickerboom.tt",
+      "publisher_website": "https://stickerboom.tt",
+      "privacy_policy_website": "https://stickerboom.tt/privacy",
+      "license_agreement_website": "https://stickerboom.tt/license",
+      "image_data_version": "1",
+      "avoid_cache": false,
+      "animated_sticker_pack": false,
+      "stickers": [
+        {
+          "image_file": "parang-vibes.webp",
+          "emojis": [
+            "🎸",
+            "🪇",
+            "🎄"
+          ]
+        },
+        {
+          "image_file": "parang-season.webp",
+          "emojis": [
+            "🫔",
+            "🍷",
+            "🌺"
+          ]
+        },
+        {
+          "image_file": "deya-parsad.webp",
+          "emojis": [
+            "🪔",
+            "🌼",
+            "✨"
+          ]
+        },
+        {
+          "image_file": "ponche-de-creme.webp",
+          "emojis": [
+            "🥛",
+            "🥃",
+            "🎄"
+          ]
+        },
+        {
+          "image_file": "trini-black-cake.webp",
+          "emojis": [
+            "🍰",
+            "🥃",
+            "😴"
+          ]
+        },
+        {
+          "image_file": "divali-sweet-bag.webp",
+          "emojis": [
+            "🍬",
+            "🛍️",
+            "🪔"
+          ]
+        },
+        {
+          "image_file": "eid-sawine.webp",
+          "emojis": [
+            "🥣",
+            "🌙",
+            "🍒"
+          ]
+        },
+        {
+          "image_file": "phagwa-holi.webp",
+          "emojis": [
+            "🎨",
+            "🔫",
+            "🌈"
+          ]
+        },
+        {
+          "image_file": "chowtal-jhaal.webp",
+          "emojis": [
+            "🥁",
+            "🔔",
+            "🎶"
+          ]
+        },
+        {
+          "image_file": "christmas-curtains.webp",
+          "emojis": [
+            "🪟",
+            "🧹",
+            "😩"
+          ]
+        },
+        {
+          "image_file": "emancipation-pride.webp",
+          "emojis": [
+            "👑",
+            "🥁",
+            "🇹🇹"
+          ]
+        },
+        {
+          "image_file": "every-creed-and-race.webp",
+          "emojis": [
+            "🤝",
+            "❤️",
+            "🇹🇹"
+          ]
+        }
+      ]
+    },
+    {
+      "identifier": "pack-8-tobago-everyday",
+      "name": "StickerBoom: Bago Vibes & Ever",
+      "publisher": "StickerBoom 🇹🇹",
+      "tray_image_file": "pack-8-tobago-everyday.png",
+      "publisher_email": "hello@stickerboom.tt",
+      "publisher_website": "https://stickerboom.tt",
+      "privacy_policy_website": "https://stickerboom.tt/privacy",
+      "license_agreement_website": "https://stickerboom.tt/license",
+      "image_data_version": "1",
+      "avoid_cache": false,
+      "animated_sticker_pack": false,
+      "stickers": [
+        {
+          "image_file": "crab-and-dumpling.webp",
+          "emojis": [
+            "🦀",
+            "🥟",
+            "🏝️"
+          ]
+        },
+        {
+          "image_file": "maxi-taxi.webp",
+          "emojis": [
+            "🚐",
+            "🔊",
+            "💨"
+          ]
+        },
+        {
+          "image_file": "buccoo-goat-race.webp",
+          "emojis": [
+            "🐐",
+            "🏃",
+            "💨"
+          ]
+        },
+        {
+          "image_file": "nylon-pool.webp",
+          "emojis": [
+            "🌊",
+            "⭐",
+            "🛥️"
+          ]
+        },
+        {
+          "image_file": "pure-bago-vibes.webp",
+          "emojis": [
+            "🌴",
+            "😌",
+            "🌅"
+          ]
+        },
+        {
+          "image_file": "highway-traffic.webp",
+          "emojis": [
+            "🚗",
+            "🌧️",
+            "😩"
+          ]
+        },
+        {
+          "image_file": "trini-mom-spoon.webp",
+          "emojis": [
+            "🥄",
+            "🍗",
+            "😨"
+          ]
+        },
+        {
+          "image_file": "flying-slipper.webp",
+          "emojis": [
+            "🩴",
+            "🎯",
+            "💨"
+          ]
+        },
+        {
+          "image_file": "wasa-water-gone.webp",
+          "emojis": [
+            "🚿",
+            "🫧",
+            "😭"
+          ]
+        },
+        {
+          "image_file": "ttec-current-gone.webp",
+          "emojis": [
+            "🕯️",
+            "🔦",
+            "🥵"
+          ]
+        },
+        {
+          "image_file": "scarlet-ibis-cocrico.webp",
+          "emojis": [
+            "🦩",
+            "🐦",
+            "🇹🇹"
+          ]
+        },
+        {
+          "image_file": "sweet-tt-heart.webp",
+          "emojis": [
+            "❤️",
+            "🇹🇹",
+            "✨"
+          ]
+        }
+      ]
+    }
+  ]
+}
