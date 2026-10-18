@@ -655,7 +655,7 @@ html, body {
   text-overflow: ellipsis;
 }
 
-/* Live Social Preview & Cross-Social Share Card */
+/* Selected Sticker Inspector & Export Card */
 .live-chat-card {
   margin: 4px 16px 20px;
   padding: 16px;
@@ -670,114 +670,56 @@ html, body {
   height: 4px;
   border-radius: 99px;
   background: var(--border-jute);
-  margin: 0 auto 10px;
+  margin: 0 auto 12px;
 }
 
-.live-chat-header {
+.selected-sticker-showcase {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--bg-coconut);
+  border: 1px solid var(--border-jute);
 }
 
-.live-dot-title {
+.selected-sticker-thumb {
+  width: 84px;
+  height: 84px;
+  border-radius: 12px;
+  border: 1px solid var(--border-jute);
+  flex-shrink: 0;
+  padding: 6px;
+}
+
+.selected-sticker-info {
   display: flex;
-  align-items: center;
-  gap: 7px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.selected-sticker-title {
   font-family: var(--font-headline);
-  font-size: 14.5px;
+  font-size: 18px;
   font-weight: 800;
+  color: var(--text-charcoal);
+  margin: 0;
+  line-height: 1.15;
 }
 
-.live-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--bara-gold);
+.selected-format-meta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .dialect-tag {
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.meaning-callout {
-  background: #FAF6EE;
-  border-left: 3px solid var(--trini-crimson);
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  color: var(--text-slate);
-  margin-bottom: 10px;
-  line-height: 1.4;
-}
-
-/* Simulated Universal Social DM / Thread Canvas */
-.wa-chat-canvas {
-  background-color: var(--wa-chat-bg);
-  background-image: radial-gradient(rgba(18, 19, 22, 0.05) 1px, transparent 0);
-  background-size: 18px 18px;
-  border-radius: 14px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border: 1px solid var(--border-jute);
-}
-
-.chat-bubble-in {
-  align-self: flex-start;
-  max-width: 82%;
-  background: var(--wa-bubble-in);
-  padding: 8px 12px;
-  border-radius: 0 12px 12px 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
-.chat-sender {
-  font-size: 11px;
-  font-weight: 800;
   color: var(--trini-crimson);
-  margin-bottom: 2px;
-}
-
-.chat-text {
-  font-size: 13px;
-  line-height: 1.35;
-  color: var(--text-charcoal);
-}
-
-.chat-time {
-  font-size: 9.5px;
-  color: #667781;
-  text-align: right;
-  margin-top: 3px;
-}
-
-.chat-sticker-out {
-  align-self: flex-end;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 14px;
-  padding: 8px 10px 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.chat-sticker-out img {
-  width: 116px;
-  height: 116px;
-  object-fit: contain;
-}
-
-.chat-ticks {
-  color: var(--bara-gold);
-  font-weight: 800;
-  margin-left: 3px;
 }
 
 /* Cross-Social Action Buttons Grid */

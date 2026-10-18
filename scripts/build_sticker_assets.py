@@ -1,6 +1,8 @@
 import json
+import math
 import os
 import re
+import zipfile
 from collections import deque
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -12,16 +14,34 @@ SHEETS = {
     "illustrated_1": os.path.join(ARTIFACT_DIR, "trini_sticker_style_illustrated_1792267569074.jpg"),
     "folklore_3d": os.path.join(ARTIFACT_DIR, "trini_pack_folklore_festivals_3d_1792268112352.jpg"),
     "social_slang": os.path.join(ARTIFACT_DIR, "trini_pack_social_slang_illustrated_1792268111885.jpg"),
+    "extra_3d": os.path.join(ARTIFACT_DIR, "custom_sheet_3d_extra_1792362545945.jpg"),
+    "extra_slang": os.path.join(ARTIFACT_DIR, "custom_sheet_slang_extra_1792362548549.jpg"),
+}
+
+# Map additional stickers directly to the newly generated custom 3D & Pop-Art sheets
+EXTRA_SHEET_OVERRIDES = {
+    "ah-eh-able": ("extra_3d", 0, 0),
+    "bake-and-shark": ("extra_3d", 0, 1),
+    "pepper-mouth": ("extra_3d", 0, 2),
+    "hang-jack": ("extra_3d", 1, 0),
+    "deya-parsad": ("extra_3d", 1, 1),
+    "crab-and-dumpling": ("extra_3d", 1, 2),
+    "scene": ("extra_slang", 0, 0),
+    "fuh-real": ("extra_slang", 0, 1),
+    "bess": ("extra_slang", 0, 2),
+    "cyah-take-dat": ("extra_slang", 1, 0),
+    "wait-for-de-riddim": ("extra_slang", 1, 1),
+    "vibes-on-vibes": ("extra_slang", 1, 2),
 }
 
 
 def ensure_dirs():
-    for sub in ["assets/icons", "assets/stickers", "assets/trays"]:
+    for sub in ["assets/icons", "assets/stickers", "assets/trays", "assets/packs"]:
         os.makedirs(os.path.join(WORKSPACE_DIR, sub), exist_ok=True)
 
 
 def keep_central_connected_component(rgba):
-    """Removes any disconnected floating background doodles (like green WhatsApp icons) around a sticker."""
+    """Removes any disconnected floating background doodles around a sticker."""
     w, h = rgba.size
     pixels = rgba.load()
     visited = bytearray(w * h)
@@ -50,7 +70,6 @@ def keep_central_connected_component(rgba):
                         if not visited[nidx] and pixels[nx, ny][3] > 0:
                             visited[nidx] = 1
                             q.append((nx, ny))
-            # Favor large component near the center
             score = len(comp) - min_dist_sq * 0.5
             if score > best_score:
                 best_score = score
@@ -72,7 +91,7 @@ def keep_central_connected_component(rgba):
 
 
 def remove_background_flood(tile_img, tolerance=42, crop_bottom_label=False):
-    """Removes background and disconnected WhatsApp doodle artifacts from a cropped sticker tile."""
+    """Removes background and disconnected doodle artifacts from a cropped sticker tile."""
     rgba = tile_img.convert("RGBA")
     w, h = rgba.size
     if crop_bottom_label:
@@ -117,7 +136,6 @@ def remove_background_flood(tile_img, tolerance=42, crop_bottom_label=False):
             if abs(r - sr) + abs(g - sg) + abs(b - sb) < thresh:
                 is_bg = True
                 break
-        # Also treat faint mint-green WhatsApp doodle lines on light backgrounds as background
         if not is_bg and g > 200 and r > 170 and b > 180 and (g - r) >= 10:
             is_bg = True
 
@@ -143,7 +161,7 @@ def remove_background_flood(tile_img, tolerance=42, crop_bottom_label=False):
     return rgba
 
 
-def fit_to_512_canvas(content_rgba, add_label=None, accent_hex="#DA1A35"):
+def fit_to_512_canvas(content_rgba, add_label=None, accent_hex="#E03A26"):
     """Places RGBA artwork onto a 512x512 transparent canvas with 16px safe margin."""
     canvas = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
     max_w = 468
@@ -204,7 +222,7 @@ def hex_to_rgba(hex_str, alpha=255):
     return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16), alpha)
 
 
-def draw_sticker_pill_label(canvas, text, accent_hex="#DA1A35"):
+def draw_sticker_pill_label(canvas, text, accent_hex="#E03A26"):
     draw = ImageDraw.Draw(canvas)
     font = get_font(36 if len(text) <= 14 else 29, bold=True)
     bbox = draw.textbbox((0, 0), text, font=font)
@@ -217,13 +235,11 @@ def draw_sticker_pill_label(canvas, text, accent_hex="#DA1A35"):
     px = (512 - pw) // 2
     py = 492 - ph
 
-    # Die-cut white outer border
     draw.rounded_rectangle(
         (px - 6, py - 6, px + pw + 6, py + ph + 6),
         radius=28,
         fill=(255, 255, 255, 255),
     )
-    # Obsidian dark pill with accent border
     draw.rounded_rectangle(
         (px, py, px + pw, py + ph),
         radius=23,
@@ -261,6 +277,16 @@ def extract_sheet_tile(sheet_key, row, col, name, style, accent):
         tile = img.crop((x0, y0, x1, y1))
         cleaned = remove_background_flood(tile, tolerance=30, crop_bottom_label=True)
         return fit_to_512_canvas(cleaned, add_label=name, accent_hex=accent)
+    elif sheet_key == "extra_3d":
+        cw = w / 3.0
+        rh = h / 2.0
+        x0 = int(col * cw + cw * 0.03)
+        x1 = int((col + 1) * cw - cw * 0.03)
+        y0 = int(row * rh + rh * 0.03)
+        y1 = int((row + 1) * rh - rh * 0.03)
+        tile = img.crop((x0, y0, x1, y1))
+        cleaned = remove_background_flood(tile, tolerance=22, crop_bottom_label=False)
+        return fit_to_512_canvas(cleaned, add_label=name, accent_hex=accent)
     else:
         cw = w / 3.0
         rh = h / 2.0
@@ -274,19 +300,21 @@ def extract_sheet_tile(sheet_key, row, col, name, style, accent):
 
 
 def render_custom_sticker(sticker):
-    """Renders a clean 512x512 transparent die-cut emoji/sticker badge WITHOUT any flag ribbon or description clutter."""
+    """Renders a high-impact 512x512 Vinyl Peel & Pop-Art Sunburst die-cut sticker (zero flags, zero descriptions)."""
     canvas = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
 
-    accent = hex_to_rgba(sticker.get("accent", "#DA1A35"))
+    accent_hex = sticker.get("accent", "#E03A26")
+    if accent_hex == "#25D366":
+        accent_hex = "#F59E0B"
+    accent = hex_to_rgba(accent_hex)
     is_3d = sticker.get("style") == "3d"
     name = sticker["name"]
-    raw_emojis = [e for e in sticker.get("emojis", ["🔥"]) if e != "🇹🇹"]
-    if not raw_emojis:
-        raw_emojis = ["🔥"]
+    raw_emojis = [e for e in sticker.get("emojis", ["🔥"]) if e != "🇹🇹"] or ["🔥"]
 
-    cx, cy = 256, 224
-    r_outer = 188
+    cx, cy = 256, 222
+    r_outer = 190
+    r_inner = r_outer - 16
 
     # Soft shadow
     shadow = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
@@ -295,40 +323,53 @@ def render_custom_sticker(sticker):
     shadow = shadow.filter(ImageFilter.GaussianBlur(10))
     canvas.alpha_composite(shadow)
 
-    # Die-cut white sticker border
+    # Die-cut white outer vinyl border
     draw.ellipse(
         (cx - r_outer, cy - r_outer, cx + r_outer, cy + r_outer),
         fill=(255, 255, 255, 255),
     )
 
-    # Inner circular medallion (clean, zero flag ribbon)
-    r_inner = r_outer - 16
-    if is_3d:
-        draw.ellipse(
-            (cx - r_inner, cy - r_inner, cx + r_inner, cy + r_inner),
-            fill=(24, 26, 32, 255),
-            outline=accent,
-            width=8,
-        )
-        gloss = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
-        gdraw = ImageDraw.Draw(gloss)
-        gdraw.ellipse(
-            (cx - int(r_inner * 0.58), cy - int(r_inner * 0.80), cx + int(r_inner * 0.58), cy - int(r_inner * 0.25)),
-            fill=(255, 255, 255, 22),
-        )
-        canvas.alpha_composite(gloss)
-        draw = ImageDraw.Draw(canvas)
-    else:
-        draw.ellipse(
-            (cx - r_inner, cy - r_inner, cx + r_inner, cy + r_inner),
-            fill=(250, 247, 242, 255),
-            outline=accent,
-            width=10,
-        )
+    # Create radial sunburst vinyl disc inside r_inner
+    disc = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+    ddraw = ImageDraw.Draw(disc)
+    base_bg = (22, 24, 30, 255) if is_3d else (255, 246, 232, 255)
+    ray_color = (accent[0], accent[1], accent[2], 55 if is_3d else 42)
+    ddraw.ellipse((cx - r_inner, cy - r_inner, cx + r_inner, cy + r_inner), fill=base_bg)
 
-    # Render large expressive central emoji trio (zero flags, zero extra description banner)
-    emoji_font_main = get_emoji_font(120)
-    emoji_font_side = get_emoji_font(72)
+    num_rays = 16
+    for i in range(num_rays):
+        a1 = (i * 2 * math.pi) / num_rays
+        a2 = ((i + 0.5) * 2 * math.pi) / num_rays
+        p1 = (cx + math.cos(a1) * r_inner * 1.3, cy + math.sin(a1) * r_inner * 1.3)
+        p2 = (cx + math.cos(a2) * r_inner * 1.3, cy + math.sin(a2) * r_inner * 1.3)
+        ddraw.polygon([(cx, cy), p1, p2], fill=ray_color)
+
+    # Mask the sunburst to r_inner circle
+    disc_mask = Image.new("L", (512, 512), 0)
+    mdraw = ImageDraw.Draw(disc_mask)
+    mdraw.ellipse((cx - r_inner, cy - r_inner, cx + r_inner, cy + r_inner), fill=255)
+    canvas.paste(disc, (0, 0), disc_mask)
+
+    draw = ImageDraw.Draw(canvas)
+    draw.ellipse(
+        (cx - r_inner, cy - r_inner, cx + r_inner, cy + r_inner),
+        outline=accent,
+        width=9,
+    )
+
+    # Subtle vinyl top gloss arc + bottom-right 3D vinyl peel curl
+    gloss = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+    gdraw = ImageDraw.Draw(gloss)
+    gdraw.ellipse(
+        (cx - int(r_inner * 0.62), cy - int(r_inner * 0.82), cx + int(r_inner * 0.62), cy - int(r_inner * 0.22)),
+        fill=(255, 255, 255, 28),
+    )
+    canvas.alpha_composite(gloss)
+    draw = ImageDraw.Draw(canvas)
+
+    # Render expressive central artwork
+    emoji_font_main = get_emoji_font(126)
+    emoji_font_side = get_emoji_font(74)
 
     main_em = raw_emojis[0]
     left_em = raw_emojis[1] if len(raw_emojis) > 1 else ""
@@ -336,15 +377,15 @@ def render_custom_sticker(sticker):
 
     try:
         if left_em:
-            draw.text((cx - 94, cy - 4), left_em, font=emoji_font_side, anchor="mm", embedded_color=True)
+            draw.text((cx - 96, cy - 2), left_em, font=emoji_font_side, anchor="mm", embedded_color=True)
         if right_em:
-            draw.text((cx + 94, cy - 4), right_em, font=emoji_font_side, anchor="mm", embedded_color=True)
-        draw.text((cx, cy - 12), main_em, font=emoji_font_main, anchor="mm", embedded_color=True)
+            draw.text((cx + 96, cy - 2), right_em, font=emoji_font_side, anchor="mm", embedded_color=True)
+        draw.text((cx, cy - 10), main_em, font=emoji_font_main, anchor="mm", embedded_color=True)
     except Exception:
-        draw.text((cx, cy - 12), main_em, font=emoji_font_main, fill=accent, anchor="mm")
+        draw.text((cx, cy - 10), main_em, font=emoji_font_main, fill=accent, anchor="mm")
 
     # Main bold die-cut slang phrase pill at bottom
-    draw_sticker_pill_label(canvas, name, sticker.get("accent", "#DA1A35"))
+    draw_sticker_pill_label(canvas, name, accent_hex)
     return canvas
 
 
@@ -377,15 +418,25 @@ def main():
         "sticker_packs": [],
     }
 
+    all_sticker_files = []
     total_count = 0
+
     for pack in packs:
         pack_id = pack["id"]
         pack_stickers_meta = []
         first_sticker_img = None
+        pack_files = []
 
         for sticker in pack["stickers"]:
             sid = sticker["id"]
-            if "sheetSource" in sticker and sid != "wha-appen":
+            accent_hex = sticker.get("accent", "#E03A26")
+            if accent_hex == "#25D366":
+                accent_hex = "#F59E0B"
+
+            if sid in EXTRA_SHEET_OVERRIDES:
+                s_key, r_idx, c_idx = EXTRA_SHEET_OVERRIDES[sid]
+                rgba_512 = extract_sheet_tile(s_key, r_idx, c_idx, sticker["name"], sticker["style"], accent_hex)
+            elif "sheetSource" in sticker and sid != "wha-appen":
                 src = sticker["sheetSource"]
                 rgba_512 = extract_sheet_tile(
                     src["sheet"],
@@ -393,7 +444,7 @@ def main():
                     src["col"],
                     sticker["name"],
                     sticker["style"],
-                    sticker.get("accent", "#DA1A35"),
+                    accent_hex,
                 )
             else:
                 rgba_512 = render_custom_sticker(sticker)
@@ -407,6 +458,11 @@ def main():
             save_whatsapp_webp(rgba_512, webp_path)
             rgba_512.save(png_path, "PNG", compress_level=3)
 
+            pack_files.append((png_path, f"png/{sid}.png"))
+            pack_files.append((webp_path, f"webp/{sid}.webp"))
+            all_sticker_files.append((png_path, f"{pack_id}/png/{sid}.png"))
+            all_sticker_files.append((webp_path, f"{pack_id}/webp/{sid}.webp"))
+
             clean_emojis = [e for e in sticker.get("emojis", ["🔥"]) if e != "🇹🇹"] or ["🔥"]
             pack_stickers_meta.append(
                 {
@@ -419,29 +475,43 @@ def main():
         tray_path = os.path.join(WORKSPACE_DIR, pack["trayIcon"])
         tray_img = first_sticker_img.resize((96, 96), Image.Resampling.LANCZOS)
         tray_img.save(tray_path, "PNG", compress_level=4)
+        pack_files.append((tray_path, f"tray-{pack_id}.png"))
 
-        contents_manifest["sticker_packs"].append(
-            {
-                "identifier": pack_id,
-                "name": f"StickerBoom: {pack['name']}"[:30],
-                "publisher": "StickerBoom",
-                "tray_image_file": os.path.basename(tray_path),
-                "publisher_email": "daryl.created@gmail.com",
-                "publisher_website": "https://stickerboom.vercel.app",
-                "privacy_policy_website": "https://stickerboom.vercel.app",
-                "license_agreement_website": "https://stickerboom.vercel.app",
-                "image_data_version": "2",
-                "avoid_cache": False,
-                "animated_sticker_pack": False,
-                "stickers": pack_stickers_meta,
-            }
-        )
+        pack_entry = {
+            "identifier": pack_id,
+            "name": f"StickerBoom: {pack['name']}"[:30],
+            "publisher": "StickerBoom",
+            "tray_image_file": os.path.basename(tray_path),
+            "publisher_email": "daryl.created@gmail.com",
+            "publisher_website": "https://stickerboom.vercel.app",
+            "privacy_policy_website": "https://stickerboom.vercel.app",
+            "license_agreement_website": "https://stickerboom.vercel.app",
+            "image_data_version": "3",
+            "avoid_cache": False,
+            "animated_sticker_pack": False,
+            "stickers": pack_stickers_meta,
+        }
+        contents_manifest["sticker_packs"].append(pack_entry)
+
+        # Build real .ZIP archive for this pack
+        zip_path = os.path.join(WORKSPACE_DIR, "assets/packs", f"{pack_id}.zip")
+        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for disk_path, arc_name in pack_files:
+                zf.write(disk_path, arcname=arc_name)
+            zf.writestr("pack-info.json", json.dumps(pack_entry, indent=2, ensure_ascii=False))
 
     manifest_path = os.path.join(WORKSPACE_DIR, "assets/contents.json")
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(contents_manifest, f, indent=2, ensure_ascii=False)
 
-    print(f"Successfully rebuilt {total_count} flag-free stickers (.webp & .png) and 8 tray icons!")
+    # Build master All-98-Stickers .ZIP archive
+    master_zip_path = os.path.join(WORKSPACE_DIR, "assets/packs", "stickerboom-all-98-stickers.zip")
+    with zipfile.ZipFile(master_zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for disk_path, arc_name in all_sticker_files:
+            zf.write(disk_path, arcname=arc_name)
+        zf.write(manifest_path, arcname="contents.json")
+
+    print(f"Successfully built {total_count} stickers (.webp & .png), 8 tray icons, and 9 real .ZIP pack archives!")
 
 
 if __name__ == "__main__":
