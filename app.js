@@ -285,8 +285,6 @@
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: `StickerBoom — ${sticker.name}`,
-          text: `${sticker.name}: ${sticker.meaning}`,
           files: [file]
         });
         showToast(`Shared "${sticker.name}"!`);
@@ -403,20 +401,6 @@
           <div class="chat-time">${now} <span class="chat-ticks">Sent</span></div>
         `;
         chatLog.appendChild(out);
-
-        // Automated crew reply
-        setTimeout(() => {
-          const reply = document.createElement("div");
-          reply.className = "chat-bubble-in";
-          reply.innerHTML = `
-            <div class="chat-sender">${s.chatSender || "Brethren Crew"}</div>
-            <div class="chat-text">😂🔥 "${s.name}" — ${s.chatReplyContext || s.meaning}</div>
-            <div class="chat-time">${now}</div>
-          `;
-          chatLog.appendChild(reply);
-          chatLog.scrollTop = chatLog.scrollHeight;
-        }, 450);
-
         chatLog.scrollTop = chatLog.scrollHeight;
       });
       quickTray.appendChild(btn);

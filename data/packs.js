@@ -187,7 +187,7 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "Just pull de Sunday macaroni pie out de oven, golden brown crust!",
         chatReplyContext: "10/10 Chef's kiss approval",
         style: "sticker",
-        emojis: ["👌", "🔥", "🇹🇹"],
+        emojis: ["👌", "🔥", "🔥"],
         accent: "#25D366"
       },
       {
@@ -299,7 +299,7 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "Blessings family! Everybody good for de weekend?",
         chatReplyContext: "Everyday Trini greeting",
         style: "sticker",
-        emojis: ["🤜", "🤛", "🇹🇹"],
+        emojis: ["🤜", "🤛", "🔥"],
         sheetSource: { sheet: "illustrated_1", row: 0, col: 0 },
         accent: "#DA1A35"
       },
@@ -325,7 +325,7 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "How we suppose to go back to work on Thursday after Carnival Tuesday?!",
         chatReplyContext: "Post-Carnival withdrawal",
         style: "3d",
-        emojis: ["🎭", "😢", "🇹🇹"],
+        emojis: ["🎭", "😢", "🔥"],
         accent: "#DA1A35"
       },
       {
@@ -422,7 +422,7 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "Morning! Passing by Debe / Curepe junction right now, how much doubles allyuh want?",
         chatReplyContext: "Mandatory Trini breakfast craving",
         style: "3d",
-        emojis: ["🌮", "🤤", "🇹🇹"],
+        emojis: ["🌮", "🤤", "🔥"],
         sheetSource: { sheet: "emoji_3d", row: 0, col: 1 },
         accent: "#F59E0B"
       },
@@ -644,7 +644,7 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "Welcome drinks on de tray! Rum punch with fresh nutmeg.",
         chatReplyContext: "Cheers to the island life",
         style: "3d",
-        emojis: ["🍹", "🍒", "🇹🇹"],
+        emojis: ["🍹", "🍒", "🔥"],
         accent: "#F59E0B"
       },
       {
@@ -716,7 +716,7 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "OUT DE STADIUM! Straight over de Trini Posse stand roof! 🏏",
         chatReplyContext: "Maximum West Indies & T&T pride",
         style: "sticker",
-        emojis: ["🏏", "⚽", "🇹🇹"],
+        emojis: ["🏏", "⚽", "🔥"],
         accent: "#DA1A35"
       }
     ]
@@ -741,7 +741,7 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "Band running through de tune tonight in de panyard, come hear sweet iron and pan!",
         chatReplyContext: "Sweet Trinidad Steelpan music",
         style: "3d",
-        emojis: ["🥁", "🎶", "🇹🇹"],
+        emojis: ["🥁", "🎶", "🔥"],
         sheetSource: { sheet: "emoji_3d", row: 1, col: 0 },
         accent: "#0EA5E9"
       },
@@ -791,7 +791,7 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "When de chorus hit, everybody hand in de air!",
         chatReplyContext: "Rag & flag waving high",
         style: "sticker",
-        emojis: ["🚩", "🇹🇹", "🙌"],
+        emojis: ["🚩", "🔥", "🙌"],
         accent: "#DA1A35"
       },
       {
@@ -803,7 +803,7 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "Look at the Moko Jumbies dancing across the Brian Lara Promenade!",
         chatReplyContext: "Towering cultural pride",
         style: "3d",
-        emojis: ["🎪", "✨", "🇹🇹"],
+        emojis: ["🎪", "✨", "🔥"],
         accent: "#F59E0B"
       },
       {
@@ -1154,10 +1154,10 @@ window.STICKERBOOM_PACKS = [
         variations: "August 1st • Kambule & African Drums",
         meaning: "Celebrating African Emancipation Day (first country in the world to declare it a national holiday) in royal Dashiki attire.",
         chatSender: "Cultural Procession",
-        chatIncoming: "Happy Emancipation Day! Drum procession starting from Independence Square 🇹🇹",
+        chatIncoming: "Happy Emancipation Day! Drum procession starting from Independence Square 🔥",
         chatReplyContext: "Royal heritage & pride",
         style: "3d",
-        emojis: ["👑", "🥁", "🇹🇹"],
+        emojis: ["👑", "🥁", "🔥"],
         accent: "#F59E0B"
       },
       {
@@ -1166,10 +1166,10 @@ window.STICKERBOOM_PACKS = [
         variations: "Equal place • Sweet T&T Unity",
         meaning: "Honoring the iconic line from the Trinidad & Tobago National Anthem: 'Here every creed and race find an equal place.'",
         chatSender: "Trini Diaspora",
-        chatIncoming: "Happy Independence / Republic Day to every Trinbagonian home and abroad! 🇹🇹",
+        chatIncoming: "Happy Independence / Republic Day to every Trinbagonian home and abroad! 🔥",
         chatReplyContext: "National unity & love",
         style: "sticker",
-        emojis: ["🤝", "❤️", "🇹🇹"],
+        emojis: ["🤝", "❤️", "🔥"],
         accent: "#DA1A35"
       }
     ]
@@ -1316,19 +1316,19 @@ window.STICKERBOOM_PACKS = [
         chatIncoming: "Watching thousands of bright red Scarlet Ibis fly into the mangroves at sunset!",
         chatReplyContext: "National wildlife beauty",
         style: "3d",
-        emojis: ["🦩", "🐦", "🇹🇹"],
+        emojis: ["🦩", "🐦", "🔥"],
         accent: "#DA1A35"
       },
       {
         id: "sweet-tt-heart",
-        name: "SWEET T&T HEART 🇹🇹",
+        name: "SWEET ISLAND HEART",
         variations: "Red White & Black • Home sweet home",
         meaning: "Pure love and pride for Trinidad & Tobago in the iconic Red, White, and Black diagonal flag colors.",
         chatSender: "Family Abroad",
-        chatIncoming: "No matter where in the world we go, Trinidad & Tobago is always home ❤️🇹🇹",
+        chatIncoming: "No matter where in the world we go, Trinidad & Tobago is always home ❤️🔥",
         chatReplyContext: "Red, White & Black pride forever",
         style: "3d",
-        emojis: ["❤️", "🇹🇹", "✨"],
+        emojis: ["❤️", "🔥", "✨"],
         accent: "#DA1A35"
       }
     ]
