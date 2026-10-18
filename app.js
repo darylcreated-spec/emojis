@@ -1,5 +1,5 @@
-// StickerBoom 🇹🇹 — Cross-Platform Mobile Web App & Multi-Social Sticker Engine
-// Zero AI Spindle • Instant Local WebP & Transparent PNG Engine for WhatsApp, IG, TikTok, iMessage, Telegram & Discord
+// StickerBoom — Cross-Platform Mobile Web App & Universal Multi-Social Sticker Engine
+// Zero AI Spindle • Instant Local WebP & Transparent PNG Engine for IG, TikTok, iMessage, Telegram, Discord & WhatsApp
 
 (function () {
   const packs = window.STICKERBOOM_PACKS || [];
@@ -109,7 +109,7 @@
     packBadge.style.backgroundColor = pack.badgeColor || "#DA1A35";
     packVol.textContent = `Pack ${pack.number} of ${packs.length} • 98 Total`;
     packTitle.textContent = `Pack ${pack.number}: ${pack.name}`;
-    packSpecs.textContent = `${pack.stickers.length} Stickers • 512×512 WebP (<100KB) & Transparent PNG • Ready for WhatsApp, IG, TikTok, iMessage, Telegram & Discord`;
+    packSpecs.textContent = `${pack.stickers.length} Stickers • 512×512 Transparent PNG & WebP (<100KB) • Ready for IG, TikTok, iMessage, Telegram, Discord & WhatsApp`;
   }
 
   // Filter Stickers
@@ -154,7 +154,7 @@
       empty.style.textAlign = "center";
       empty.style.padding = "28px 12px";
       empty.style.color = "var(--text-muted)";
-      empty.innerHTML = `<strong>No matching Trini slang found.</strong><br/><span style="font-size:12px;">Try searching "Steups", "Ent", "Doubles", "Tabanca", or "Soucouyant".</span>`;
+      empty.innerHTML = `<strong>No matching slang found.</strong><br/><span style="font-size:12px;">Try searching "Steups", "Ent", "Doubles", "Tabanca", or "Soucouyant".</span>`;
       stickerGrid.appendChild(empty);
       return;
     }
@@ -177,7 +177,7 @@
 
       card.innerHTML = `
         <div class="sticker-checkerboard">
-          <img src="${sticker.webpUrl}" alt="${sticker.name} Trini Sticker" loading="lazy" onerror="this.src='${sticker.pngUrl}'" />
+          <img src="${sticker.webpUrl}" alt="${sticker.name} Sticker" loading="lazy" onerror="this.src='${sticker.pngUrl}'" />
           <span class="quick-send-badge" title="Select or Quick Send">${isSelected ? "✓" : "+"}</span>
           <span class="style-tag-mini">${sticker.style === "3d" ? "3D" : "SLANG"}</span>
         </div>
@@ -195,7 +195,7 @@
     });
   }
 
-  // Update Selected Sticker & Live Chat Test Box
+  // Update Selected Sticker & Live Social Preview Box
   function updateSelectedSticker(sticker, scrollToPreview) {
     selectedSticker = sticker;
 
@@ -208,10 +208,10 @@
       if (badge) badge.textContent = isMatch ? "✓" : "+";
     });
 
-    liveChatStickerTitle.textContent = `Live Chat Test: "${sticker.name}"`;
-    liveChatTriggers.textContent = (sticker.emojis || ["🇹🇹"]).join(" ");
-    selectedMeaningBox.innerHTML = `<strong>${sticker.name} (${sticker.variations || "Trini Slang"}):</strong> ${sticker.meaning}`;
-    chatSenderName.textContent = sticker.chatSender || "Brethren Crew 🇹🇹";
+    liveChatStickerTitle.textContent = `Live Social Preview: "${sticker.name}"`;
+    liveChatTriggers.textContent = (sticker.emojis || ["🔥"]).join(" ");
+    selectedMeaningBox.innerHTML = `<strong>${sticker.name} (${sticker.variations || "Slang"}):</strong> ${sticker.meaning}`;
+    chatSenderName.textContent = sticker.chatSender || "Brethren Crew";
     chatIncomingText.textContent = sticker.chatIncoming || "Wha'appen family! How de vibes looking?";
     chatPreviewStickerImg.src = sticker.webpUrl;
     chatPreviewStickerImg.alt = sticker.name;
@@ -245,7 +245,7 @@
     });
   }
 
-  // Copy Transparent Sticker to Clipboard (Works in IG Stories, iMessage, WhatsApp, Messenger, X, Discord)
+  // Copy Transparent Sticker to Clipboard (Works in IG Stories, iMessage, TikTok, Messenger, X, Discord & WhatsApp)
   async function copyStickerToClipboard(sticker) {
     if (!sticker) return;
     try {
@@ -255,7 +255,7 @@
         await navigator.clipboard.write([
           new ClipboardItem({ "image/png": pngBlob })
         ]);
-        showToast(`Copied "${sticker.name}"! Paste in WhatsApp, IG Stories, iMessage or TikTok 🇹🇹`);
+        showToast(`Copied "${sticker.name}"! Paste in IG Stories, iMessage, TikTok or Discord`);
       } else {
         triggerBlobDownload(pngBlob, `${sticker.id}-${size}px.png`);
         showToast(`Downloaded "${sticker.name}" transparent PNG!`);
@@ -285,7 +285,7 @@
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: `StickerBoom 🇹🇹 — ${sticker.name}`,
+          title: `StickerBoom — ${sticker.name}`,
           text: `${sticker.name}: ${sticker.meaning}`,
           files: [file]
         });
@@ -299,7 +299,7 @@
     // Fallback: Download exact platform format
     if (activePlatform === "whatsapp" || activePlatform === "telegram") {
       downloadFileUrl(sticker.webpUrl, `${sticker.id}.webp`);
-      showToast(`Saved "${sticker.name}" 512×512 WhatsApp WebP (<100KB)!`);
+      showToast(`Saved "${sticker.name}" 512×512 WebP (<100KB)!`);
     } else if (activePlatform === "discord") {
       const blob = await fetchStickerPngBlob(sticker, 128);
       triggerBlobDownload(blob, `${sticker.id}-discord-128px.png`);
@@ -331,33 +331,32 @@
     if (!pack) return;
 
     const packManifest = {
-      app: "StickerBoom 🇹🇹",
+      app: "StickerBoom",
       pack_id: pack.id,
       name: pack.name,
       publisher: pack.publisher,
       tray_image_file: pack.trayIcon,
-      whatsapp_specs: "512x512 WebP (<100KB) + 96x96 PNG Tray Icon",
-      social_platforms: ["WhatsApp", "Instagram", "TikTok", "iMessage", "Telegram", "Messenger", "X", "Discord"],
+      specs: "512x512 Transparent PNG & WebP (<100KB) + 96x96 PNG Tray Icon",
+      social_platforms: ["Instagram", "TikTok", "iMessage", "Telegram", "Messenger", "X", "Discord", "WhatsApp"],
       stickers: pack.stickers.map((s) => ({
         id: s.id,
         name: s.name,
         meaning: s.meaning,
         emojis: s.emojis,
-        whatsapp_webp: `assets/stickers/${s.id}.webp`,
+        webp: `assets/stickers/${s.id}.webp`,
         universal_png: `assets/stickers/${s.id}.png`
       }))
     };
 
     const blob = new Blob([JSON.stringify(packManifest, null, 2)], { type: "application/json" });
-    triggerBlobDownload(blob, `${pack.id}-whatsapp-pack.json`);
-    // Also trigger the currently selected sticker WebP download immediately for convenience
+    triggerBlobDownload(blob, `${pack.id}-stickerboom-pack.json`);
     if (selectedSticker) {
-      downloadFileUrl(selectedSticker.webpUrl, `${selectedSticker.id}.webp`);
+      downloadFileUrl(selectedSticker.pngUrl, `${selectedSticker.id}.png`);
     }
-    showToast(`Exported "${pack.name}" Pack Manifest + Sticker WebP! 🇹🇹`);
+    showToast(`Exported "${pack.name}" Pack Manifest + Sticker PNG!`);
   }
 
-  // Interactive Full-Screen Group Chat Simulator (View 2)
+  // Interactive Full-Screen Group Social Thread (View 2)
   function initInteractiveChatSimulator() {
     const chatLog = document.getElementById("interactiveChatLog");
     const quickTray = document.getElementById("chatQuickTray");
@@ -388,7 +387,7 @@
       chatLog.appendChild(b);
     });
 
-    // Populate quick tray with 18 diverse stickers
+    // Populate quick tray with 24 diverse stickers
     quickTray.innerHTML = "";
     allStickers.slice(0, 24).forEach((s) => {
       const btn = document.createElement("button");
@@ -401,11 +400,11 @@
         const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
         out.innerHTML = `
           <img src="${s.webpUrl}" alt="${s.name}" />
-          <div class="chat-time">${now} <span class="chat-ticks">✓✓</span></div>
+          <div class="chat-time">${now} <span class="chat-ticks">Sent</span></div>
         `;
         chatLog.appendChild(out);
 
-        // Automated Trini crew reply
+        // Automated crew reply
         setTimeout(() => {
           const reply = document.createElement("div");
           reply.className = "chat-bubble-in";
@@ -424,7 +423,7 @@
     });
   }
 
-  // Custom Trini Caption Stamp Studio (View 3 — 100% Local Canvas)
+  // Custom Caption Stamp Studio (View 3 — 100% Local Canvas)
   function initCaptionStudio() {
     const canvas = document.getElementById("customStickerCanvas");
     const baseSelect = document.getElementById("studioBaseSelect");
@@ -458,7 +457,7 @@
       const st = allStickers.find((s) => s.id === baseSelect.value) || allStickers[0];
       const topText = (topInput.value || "").trim().toUpperCase();
       const botText = (bottomInput.value || "").trim().toUpperCase();
-      const accent = accentSelect.value || "#DA1A35";
+      const accent = accentSelect.value || "#F59E0B";
 
       const img = new Image();
       img.crossOrigin = "anonymous";
@@ -527,11 +526,11 @@
         try {
           if (navigator.clipboard && window.ClipboardItem) {
             await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-            showToast("Copied Custom Trini Sticker to Clipboard! Paste in IG / WhatsApp 🇹🇹");
+            showToast("Copied Custom Sticker to Clipboard! Paste in IG, iMessage or TikTok");
             return;
           }
         } catch (_) {}
-        triggerBlobDownload(blob, "custom-trini-sticker.png");
+        triggerBlobDownload(blob, "custom-stickerboom.png");
         showToast("Downloaded Custom 512×512 Transparent PNG!");
       }, "image/png");
     });
@@ -543,19 +542,19 @@
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
-              title: "StickerBoom 🇹🇹 Custom Sticker",
+              title: "StickerBoom Custom Sticker",
               files: [file]
             });
             return;
           } catch (_) {}
         }
         triggerBlobDownload(blob, "custom-stickerboom.webp");
-        showToast("Saved Custom 512×512 WhatsApp WebP!");
+        showToast("Saved Custom 512×512 WebP!");
       }, "image/webp", 0.86);
     });
   }
 
-  // PWA & App Icon Switcher Modal
+  // PWA & App Icon Switcher + Obsidian Vinyl Peel Splash Controller
   function initIconModal() {
     const modal = document.getElementById("iconModalBackdrop");
     const openBtn = document.getElementById("openIconModalBtn");
@@ -564,6 +563,18 @@
     const headerImg = document.getElementById("headerAppIcon");
     const favLink = document.getElementById("faviconLink");
     const touchLink = document.getElementById("appleTouchIconLink");
+    const splashEl = document.getElementById("pwaSplashScreen");
+    const replaySplashBtn = document.getElementById("replaySplashBtn");
+
+    // Auto-dismiss Splash A smoothly after 1.15s or on tap
+    if (splashEl) {
+      const dismissSplash = () => splashEl.classList.add("hidden");
+      const splashTimer = setTimeout(dismissSplash, 1150);
+      splashEl.addEventListener("click", () => {
+        clearTimeout(splashTimer);
+        dismissSplash();
+      });
+    }
 
     if (!modal || !grid) return;
 
@@ -594,6 +605,14 @@
     modal.addEventListener("click", (e) => {
       if (e.target === modal) modal.classList.remove("open");
     });
+
+    replaySplashBtn?.addEventListener("click", () => {
+      modal.classList.remove("open");
+      if (splashEl) {
+        splashEl.classList.remove("hidden");
+        setTimeout(() => splashEl.classList.add("hidden"), 1500);
+      }
+    });
   }
 
   // Event Listeners
@@ -615,12 +634,12 @@
         pill.classList.add("active");
         activePlatform = pill.getAttribute("data-platform") || "all";
         const platformNames = {
-          all: "All Social Apps (Universal WebP & PNG)",
-          whatsapp: "WhatsApp (512×512 WebP <100KB)",
+          all: "All Social Apps (Universal PNG & WebP)",
           instagram: "Instagram Stories & TikTok (Transparent PNG Copy)",
           imessage: "iMessage & SMS Sticker Mode",
           telegram: "Telegram & Messenger 512px Mode",
-          discord: "Discord & Slack 128×128 Server Emoji Mode"
+          discord: "Discord & Slack 128×128 Server Emoji Mode",
+          whatsapp: "WhatsApp (512×512 WebP <100KB)"
         };
         showToast(`Switched mode: ${platformNames[activePlatform] || "All Socials"}`);
       });
@@ -663,7 +682,7 @@
     downloadWebpBtn?.addEventListener("click", () => {
       if (!selectedSticker) return;
       downloadFileUrl(selectedSticker.webpUrl, `${selectedSticker.id}.webp`);
-      showToast(`Downloaded "${selectedSticker.name}" 512×512 WhatsApp WebP (<100KB)!`);
+      showToast(`Downloaded "${selectedSticker.name}" 512×512 WebP (<100KB)!`);
     });
     downloadPngBtn?.addEventListener("click", () => {
       if (!selectedSticker) return;
@@ -684,14 +703,14 @@
       if (navigator.share) {
         try {
           await navigator.share({
-            title: "StickerBoom 🇹🇹 — 98 Authentic Trini Emojis & Stickers",
-            text: "Check out StickerBoom 🇹🇹 — Trini emojis & stickers for WhatsApp, IG, TikTok & iMessage!",
+            title: "StickerBoom — Expressive Stickers & Emojis for Every App",
+            text: "Check out StickerBoom — 98 expressive emojis & stickers for IG, TikTok, iMessage, Telegram & Discord!",
             url: window.location.href
           });
           return;
         } catch (_) {}
       }
-      showToast("StickerBoom 🇹🇹 link ready to share!");
+      showToast("StickerBoom link ready to share!");
     });
 
     // Bottom Navigation Tabs

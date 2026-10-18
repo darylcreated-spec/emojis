@@ -1,12 +1,12 @@
 {
-  "name": "StickerBoom 🇹🇹 — Trini Emojis & Stickers",
-  "short_name": "StickerBoom 🇹🇹",
-  "description": "98 Authentic Trinidad & Tobago Emojis & Stickers for WhatsApp, Instagram, TikTok, iMessage, Telegram, Messenger, X & Discord.",
+  "name": "StickerBoom — Expressive Stickers & Emojis",
+  "short_name": "StickerBoom",
+  "description": "98 Expressive Cultural Emojis & Slang Stickers for Instagram, TikTok, iMessage, Telegram, Messenger, X, Discord & WhatsApp.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#FAF7F2",
-  "theme_color": "#DA1A35",
+  "background_color": "#121316",
+  "theme_color": "#121316",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",

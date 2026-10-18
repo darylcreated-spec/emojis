@@ -1,42 +1,30 @@
-// StickerBoom 🇹🇹 — Master 8-Pack (98-Item) Trinidad & Tobago Cultural Emoji & Sticker Catalog
-// Zero AI Spindle • Optimized for WhatsApp, Instagram, TikTok, iMessage, Telegram, Messenger, X & Discord
+// StickerBoom — Master 8-Pack (98-Item) Cultural Emoji & Sticker Catalog
+// Zero AI Spindle • Optimized for Instagram, TikTok, iMessage, Telegram, Messenger, X, Discord & WhatsApp
 
 window.STICKERBOOM_ICONS = [
   {
     id: "icon-1",
-    name: "Scotch Bonnet Boom (Default)",
-    subtitle: "Spicy Trini Pepper + WhatsApp Peel",
-    src: "assets/icons/icon-1-scotch-bonnet.png"
+    name: "Holographic Vinyl Peel (Default)",
+    subtitle: "Obsidian + Gold & Coral Vinyl Peel",
+    src: "assets/icons/icon-1-vinyl-peel.png"
   },
   {
     id: "icon-2",
-    name: "Steelpan Bass Boom",
-    subtitle: "Chrome Tenor Pan + Crimson Burst",
-    src: "assets/icons/icon-2-steelpan.png"
+    name: "3D Emoji Pop Dynamite",
+    subtitle: "3D Shades Emoji + Die-Cut Confetti",
+    src: "assets/icons/icon-2-emoji-pop.png"
   },
   {
     id: "icon-3",
-    name: "T&T Flag Sticker Peel",
-    subtitle: "Red-White-Black Chat Bubble Peel",
-    src: "assets/icons/icon-3-flag-peel.png"
+    name: "Pop-Art Comic Burst",
+    subtitle: "Electric Yellow & Coral Comic Boom",
+    src: "assets/icons/icon-3-comic-burst.png"
   },
   {
     id: "icon-4",
-    name: "Trini Emoji Peel",
-    subtitle: "3D Shades Emoji on Obsidian",
-    src: "assets/icons/icon-4-emoji-peel.png"
-  },
-  {
-    id: "icon-5",
-    name: "Carnival Mas Burst",
-    subtitle: "Feather Crown & Fete Confetti",
-    src: "assets/icons/icon-5-carnival.png"
-  },
-  {
-    id: "icon-6",
-    name: "SB! Soca Stamp",
-    subtitle: "Street-Poster Monogram Badge",
-    src: "assets/icons/icon-6-sb-stamp.png"
+    name: "Layered Sticker Stack",
+    subtitle: "Tactile 3D Peeling Vinyl Stack",
+    src: "assets/icons/icon-4-sticker-stack.png"
   }
 ];
 
@@ -46,7 +34,7 @@ window.STICKERBOOM_PACKS = [
     number: 1,
     name: "Ent?! & Comment Section Vibes",
     shortName: "🔥 Ent?! & Comment Slang",
-    publisher: "StickerBoom 🇹🇹",
+    publisher: "StickerBoom",
     badge: "HOT RELEASE",
     badgeColor: "#DA1A35",
     description: "Viral Trinidad & Tobago comment-section retorts, co-signs, and everyday banter across WhatsApp, IG, TikTok & X.",
@@ -257,7 +245,7 @@ window.STICKERBOOM_PACKS = [
     number: 2,
     name: "Maco, Horn & Tabanca",
     shortName: "👀 Maco, Horn & Tabanca",
-    publisher: "StickerBoom 🇹🇹",
+    publisher: "StickerBoom",
     badge: "DRAMA & REACTIONS",
     badgeColor: "#F59E0B",
     description: "Expressive 3D emojis and illustrated stickers for nosy neighbors, horning drama, heartbreak tabanca, and spicy retorts.",
@@ -419,7 +407,7 @@ window.STICKERBOOM_PACKS = [
     number: 3,
     name: "Bess Belly & Doubles Lean",
     shortName: "🌮 Bess Belly & Doubles",
-    publisher: "StickerBoom 🇹🇹",
+    publisher: "StickerBoom",
     badge: "FOODIE CULT",
     badgeColor: "#25D366",
     description: "Trinidad & Tobago's iconic street food, Doubles with slight or heavy pepper, Maracas Bake & Shark, and Sunday Lunch comas.",
@@ -578,7 +566,7 @@ window.STICKERBOOM_PACKS = [
     number: 4,
     name: "Hang Jack & Stress-Free Lime",
     shortName: "🃏 Hang Jack & Liming",
-    publisher: "StickerBoom 🇹🇹",
+    publisher: "StickerBoom",
     badge: "LIMING & GAMES",
     badgeColor: "#0EA5E9",
     description: "Slamming cards in All Fours ('Hang Jack!'), Sou-Sou payday drops, weekend island limes, and West Indies boundary sixes.",
@@ -738,7 +726,7 @@ window.STICKERBOOM_PACKS = [
     number: 5,
     name: "Mas, Soca & Steelpan",
     shortName: "🎭 Mas, Soca & Steelpan",
-    publisher: "StickerBoom 🇹🇹",
+    publisher: "StickerBoom",
     badge: "CARNIVAL LEGACY",
     badgeColor: "#DA1A35",
     description: "The Greatest Show on Earth: Tenor Steelpan, Pretty Mas feathers, Dutty J'ouvert paint, Moko Jumbies, and Traditional Mas icons.",
@@ -897,7 +885,7 @@ window.STICKERBOOM_PACKS = [
     number: 6,
     name: "Soucouyant & Papa Bois",
     shortName: "🔥 Soucouyant & Folklore",
-    publisher: "StickerBoom 🇹🇹",
+    publisher: "StickerBoom",
     badge: "FOLKLORE LEGENDS",
     badgeColor: "#F59E0B",
     description: "Mythical Trinidad & Tobago folklore creatures, salt in the mortar, bush tea remedies, and protective maljo charms.",
@@ -1031,7 +1019,7 @@ window.STICKERBOOM_PACKS = [
     number: 7,
     name: "Parang, Divali, Eid & Phagwa",
     shortName: "🪔 Parang, Divali & Eid",
-    publisher: "StickerBoom 🇹🇹",
+    publisher: "StickerBoom",
     badge: "EVERY CREED & RACE",
     badgeColor: "#DA1A35",
     description: "Celebrating Trinidad & Tobago's vibrant multicultural calendar: Parang & Pastelles, Divali Deyas & Sweet Bags, Eid Sawine, and Phagwa.",
@@ -1191,7 +1179,7 @@ window.STICKERBOOM_PACKS = [
     number: 8,
     name: "Bago Vibes & Everyday T&T",
     shortName: "🦀 Bago Vibes & Maxi",
-    publisher: "StickerBoom 🇹🇹",
+    publisher: "StickerBoom",
     badge: "ISLAND LIFE",
     badgeColor: "#0EA5E9",
     description: "Tobago Store Bay Crab & Dumpling, Buccoo Goat Races, Red Band Maxi Taxis, Trini Mom's pot spoon, and WASA/T&TEC realities.",
