@@ -71,13 +71,18 @@
     }, 2600);
   }
 
+  const SVG_CHECK = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const SVG_PLUS = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+  const SVG_EYE = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
   // Render Horizontal 8-Pack Rail
   function renderPackRail() {
     packRail.innerHTML = "";
     packs.forEach((pack) => {
       const btn = document.createElement("button");
       btn.className = `pack-pill ${pack.id === activePackId && !searchQuery ? "active" : ""}`;
-      btn.textContent = `${pack.shortName} (${pack.stickers.length})`;
+      const cleanShort = pack.shortName.replace(/^[^\w]+/, "").trim();
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg><span>${cleanShort} (${pack.stickers.length})</span>`;
       btn.addEventListener("click", () => {
         activePackId = pack.id;
         if (searchQuery) {
@@ -172,7 +177,7 @@
       card.innerHTML = `
         <div class="sticker-checkerboard">
           <img src="${sticker.webpUrl}" alt="${sticker.name}" loading="lazy" onerror="this.src='${sticker.pngUrl}'" />
-          <span class="quick-send-badge" title="Selected">${isSelected ? "✓" : "+"}</span>
+          <span class="quick-send-badge" title="Selected">${isSelected ? SVG_CHECK : SVG_PLUS}</span>
           <span class="style-tag-mini">${sticker.style === "3d" ? "3D" : "SLANG"}</span>
         </div>
         <div class="sticker-meta">
@@ -197,7 +202,7 @@
       const isMatch = label === sticker.name;
       el.classList.toggle("selected", isMatch);
       const badge = el.querySelector(".quick-send-badge");
-      if (badge) badge.textContent = isMatch ? "✓" : "+";
+      if (badge) badge.innerHTML = isMatch ? SVG_CHECK : SVG_PLUS;
     });
 
     if (liveChatStickerTitle) {
@@ -573,7 +578,7 @@
             : triniSlangList.filter((item) => item.category === cat).length;
         const btn = document.createElement("button");
         btn.className = `pack-pill ${cat === activeSlangCat && !slangQuery ? "active" : ""}`;
-        btn.textContent = `${cat} (${count})`;
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span>${cat} (${count})</span>`;
         btn.addEventListener("click", () => {
           activeSlangCat = cat;
           if (slangQuery) {
@@ -595,7 +600,7 @@
         const isMatch = card.getAttribute("data-slang-id") === item.id;
         card.classList.toggle("selected", isMatch);
         const badge = card.querySelector(".quick-send-badge");
-        if (badge) badge.textContent = isMatch ? "✓" : "+";
+        if (badge) badge.innerHTML = isMatch ? SVG_CHECK : SVG_PLUS;
       });
 
       if (previewImg) {
@@ -686,7 +691,7 @@
         card.innerHTML = `
           <div class="sticker-checkerboard">
             <img src="${item.webpUrl}" alt="${item.name}" loading="lazy" onerror="this.src='${item.pngUrl}'" />
-            <span class="quick-send-badge" title="Selected">${isSelected ? "✓" : "+"}</span>
+            <span class="quick-send-badge" title="Selected">${isSelected ? SVG_CHECK : SVG_PLUS}</span>
             <span class="style-tag-mini">#${item.num}</span>
           </div>
           <div class="sticker-meta">
@@ -732,7 +737,7 @@
 
     toggleMeaningBtn?.addEventListener("click", () => {
       showSlangMeanings = !showSlangMeanings;
-      toggleMeaningBtn.innerHTML = `<span>📖 Meanings: ${showSlangMeanings ? "ON" : "OFF"}</span>`;
+      toggleMeaningBtn.innerHTML = `${SVG_EYE}<span>Meanings: ${showSlangMeanings ? "ON" : "OFF"}</span>`;
       renderSlangGrid();
     });
 
