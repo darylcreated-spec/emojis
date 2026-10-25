@@ -1,29 +1,29 @@
-// StickerBoom — Master 8-Pack (98-Item) Cultural Emoji & Sticker Catalog
+// PeelOff — Master 8-Pack (98-Item) Cultural Emoji & Sticker Catalog
 // Zero AI Spindle • Optimized for Instagram, TikTok, iMessage, Telegram, Messenger, X, Discord & WhatsApp
 
 window.STICKERBOOM_ICONS = [
   {
     id: "icon-1",
-    name: "Holographic Vinyl Peel (Default)",
-    subtitle: "Obsidian + Gold & Coral Vinyl Peel",
+    name: "Tropical Neon Peel 'P' (Default)",
+    subtitle: "3D Curling Vinyl Monogram + Corner Peel",
     src: "assets/icons/icon-1-vinyl-peel.png"
   },
   {
     id: "icon-2",
-    name: "3D Emoji Pop Dynamite",
-    subtitle: "3D Shades Emoji + Die-Cut Confetti",
+    name: "Holographic Corner Curl",
+    subtitle: "Iridescent Foil Peel + 3D Island Stickers",
     src: "assets/icons/icon-2-emoji-pop.png"
   },
   {
     id: "icon-3",
-    name: "Pop-Art Comic Burst",
-    subtitle: "Electric Yellow & Coral Comic Boom",
+    name: "3D Hand Peeling Sticker",
+    subtitle: "Tactile Die-Cut Shades Emoji Peel",
     src: "assets/icons/icon-3-comic-burst.png"
   },
   {
     id: "icon-4",
-    name: "Layered Sticker Stack",
-    subtitle: "Tactile 3D Peeling Vinyl Stack",
+    name: "Golden Banana & Vinyl Peel",
+    subtitle: "3D Plantain Peel + Winking Emoji",
     src: "assets/icons/icon-4-sticker-stack.png"
   }
 ];
