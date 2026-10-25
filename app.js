@@ -1,4 +1,4 @@
-// StickerBoom — Cross-Platform Mobile Web App & Universal Multi-Social Sticker Engine
+// PeelOff — Cross-Platform Mobile Web App & Universal Multi-Social Sticker Engine
 // 100% Real Local PNG, WebP & .ZIP Pack Engine for IG, TikTok, iMessage, Telegram, Discord & WhatsApp
 
 (function () {
@@ -437,7 +437,7 @@
             return;
           }
         } catch (_) {}
-        triggerBlobDownload(blob, "custom-stickerboom.png");
+        triggerBlobDownload(blob, "custom-peeloff.png");
         showToast("Downloaded Custom 512×512 Transparent PNG!");
       }, "image/png");
     });
@@ -445,7 +445,7 @@
     shareBtn?.addEventListener("click", () => {
       canvas.toBlob(async (blob) => {
         if (!blob) return;
-        const file = new File([blob], "custom-stickerboom.png", { type: "image/png" });
+        const file = new File([blob], "custom-peeloff.png", { type: "image/png" });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
@@ -454,7 +454,7 @@
             return;
           } catch (_) {}
         }
-        triggerBlobDownload(blob, "custom-stickerboom.png");
+        triggerBlobDownload(blob, "custom-peeloff.png");
         showToast("Saved Custom 512×512 PNG!");
       }, "image/png");
     });
@@ -873,7 +873,7 @@
           return;
         } catch (_) {}
       }
-      showToast("StickerBoom link ready to share!");
+      showToast("PeelOff link ready to share!");
     });
 
     document.querySelectorAll(".nav-tab-btn").forEach((tab) => {

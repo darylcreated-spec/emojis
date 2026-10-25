@@ -1,10 +1,16 @@
-# StickerBoom 🇹🇹 — 98 Authentic Trinidad & Tobago Emojis & Stickers
+# PeelOff 🇹🇹 — 186 Authentic Trinidad & Tobago 3D Emojis & Wordless Slang Stickers
 
-**Live App:** [https://stickerboom.vercel.app](https://stickerboom.vercel.app)  
+**Live App:** [https://peeloff.vercel.app](https://peeloff.vercel.app)  
 **GitHub Repository:** [https://github.com/darylcreated-spec/emojis](https://github.com/darylcreated-spec/emojis)  
 **Contact:** [daryl.created@gmail.com](mailto:daryl.created@gmail.com)
 
-**StickerBoom 🇹🇹** is a mobile-browser-optimized Progressive Web App (PWA) and multi-platform sticker studio featuring **98 authentic Trinidad & Tobago cultural emojis and slang stickers across 8 themed packs**, built for **WhatsApp, Instagram Stories/DMs, TikTok, iMessage, Telegram, Messenger, X, and Discord** across iOS, Android, and Desktop.
+**PeelOff 🇹🇹** is a mobile-browser-optimized Progressive Web App (PWA) and multi-platform sticker studio featuring **186 authentic Trinidad & Tobago 3D cultural emojis and wordless pictorial slang stickers** (98 across 8 themed packs + 88 literal 3D Trini Slang icons), built for **WhatsApp, Instagram Stories/DMs, TikTok, iMessage, Telegram, Messenger, X, and Discord** across iOS, Android, and Desktop.
+
+---
+
+## 🗣️ Trini Slang Pictorial Hub (All 88 Wordless 3D Icons)
+
+Every slang term from `#1 Wha yuh say?` to `#88 the eagle has landed` is rendered as a vibrant, literal, wordless 3D die-cut visual (e.g., `Red flag` = a literal crimson 3D flag waving on a golden pole; `Take a set` = a turquoise 3D beach chair with an ice cooler; `No cap` = a crossed-out 3D snapback cap) so the picture itself conveys the message without typing a word.
 
 ---
 
