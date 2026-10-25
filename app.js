@@ -4,6 +4,7 @@
 (function () {
   const packs = window.STICKERBOOM_PACKS || [];
   const icons = window.STICKERBOOM_ICONS || [];
+  const triniSlangList = window.STICKERBOOM_TRINI_SLANG || [];
 
   // Flatten all 98 stickers with pack reference
   const allStickers = [];
@@ -343,6 +344,15 @@
       baseSelect.appendChild(opt);
     });
 
+    triniSlangList.forEach((s) => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = `🗣️ ${s.name} (Trini Slang #${s.num})`;
+      baseSelect.appendChild(opt);
+    });
+
+    const combinedStudioPool = [...allStickers, ...triniSlangList];
+
     function drawRoundedRect(c, x, y, w, h, r) {
       c.beginPath();
       c.moveTo(x + r, y);
@@ -354,7 +364,7 @@
     }
 
     function renderStudioCanvas() {
-      const st = allStickers.find((s) => s.id === baseSelect.value) || allStickers[0];
+      const st = combinedStudioPool.find((s) => s.id === baseSelect.value) || combinedStudioPool[0];
       const topText = (topInput.value || "").trim().toUpperCase();
       const botText = (bottomInput.value || "").trim().toUpperCase();
       const accent = accentSelect.value || "#F59E0B";
@@ -510,12 +520,277 @@
     });
   }
 
+  // Universal Trini Slang 88-Item Pictorial Controller (View 2)
+  function initTriniSlangSection() {
+    const catRail = document.getElementById("slangCategoryRail");
+    const grid = document.getElementById("triniSlangGrid");
+    const gridTitleEl = document.getElementById("slangGridTitle");
+    const gridCountEl = document.getElementById("slangGridCount");
+    const catBadgeEl = document.getElementById("slangCategoryCountBadge");
+    const sectionTitleEl = document.getElementById("slangSectionTitle");
+    const searchInput = document.getElementById("triniSlangSearchInput");
+    const clearBtn = document.getElementById("clearTriniSlangSearchBtn");
+    const toggleMeaningBtn = document.getElementById("toggleSlangMeaningBtn");
+    const downloadZipBtn = document.getElementById("downloadAllSlangZipBtn");
+
+    // Inspector Elements
+    const previewImg = document.getElementById("slangPreviewImg");
+    const metaTag = document.getElementById("slangInspectorMetaTag");
+    const titleEl = document.getElementById("slangInspectorTitle");
+    const meaningEl = document.getElementById("slangInspectorMeaning");
+    const visualEl = document.getElementById("slangInspectorVisual");
+
+    // Inspector Export Buttons
+    const copyBtn = document.getElementById("copySlangClipboardBtn");
+    const sendBtn = document.getElementById("directSendSlangBtn");
+    const pngBtn = document.getElementById("downloadSlangPngBtn");
+    const webpBtn = document.getElementById("downloadSlangWebpBtn");
+    const discordBtn = document.getElementById("downloadSlangDiscordBtn");
+
+    if (!grid || !catRail || triniSlangList.length === 0) return;
+
+    const CATEGORIES = [
+      "All",
+      "Greetings & Links",
+      "Co-Signs & Facts",
+      "Disbelief & Comedy",
+      "Attitude & Shade",
+      "People & Drama",
+      "Vibes, Belly & Money"
+    ];
+
+    let activeSlangCat = "All";
+    let slangQuery = "";
+    let showSlangMeanings = true;
+    let selectedSlang = triniSlangList.find((i) => i.slug === "red-flag") || triniSlangList[0];
+
+    function renderSlangCategoryRail() {
+      catRail.innerHTML = "";
+      CATEGORIES.forEach((cat) => {
+        const count =
+          cat === "All"
+            ? triniSlangList.length
+            : triniSlangList.filter((item) => item.category === cat).length;
+        const btn = document.createElement("button");
+        btn.className = `pack-pill ${cat === activeSlangCat && !slangQuery ? "active" : ""}`;
+        btn.textContent = `${cat} (${count})`;
+        btn.addEventListener("click", () => {
+          activeSlangCat = cat;
+          if (slangQuery) {
+            slangQuery = "";
+            if (searchInput) searchInput.value = "";
+            if (clearBtn) clearBtn.style.display = "none";
+          }
+          renderSlangCategoryRail();
+          renderSlangGrid();
+        });
+        catRail.appendChild(btn);
+      });
+    }
+
+    function updateSelectedSlang(item, scrollToInspector) {
+      selectedSlang = item;
+
+      grid.querySelectorAll(".sticker-card").forEach((card) => {
+        const isMatch = card.getAttribute("data-slang-id") === item.id;
+        card.classList.toggle("selected", isMatch);
+        const badge = card.querySelector(".quick-send-badge");
+        if (badge) badge.textContent = isMatch ? "✓" : "+";
+      });
+
+      if (previewImg) {
+        previewImg.src = item.webpUrl;
+        previewImg.alt = item.name;
+      }
+      if (metaTag) {
+        metaTag.textContent = `ROW #${item.num} • ${item.category.toUpperCase()}`;
+      }
+      if (titleEl) {
+        titleEl.textContent = item.name;
+      }
+      if (meaningEl) {
+        meaningEl.textContent = `Meaning: "${item.meaning}"`;
+      }
+      if (visualEl) {
+        visualEl.textContent = `🎯 ${item.visual}`;
+      }
+
+      if (scrollToInspector && window.innerWidth < 640) {
+        const inspector = document.getElementById("slangInspectorSection");
+        if (inspector) {
+          inspector.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }
+    }
+
+    function renderSlangGrid() {
+      const q = slangQuery.trim().toLowerCase();
+      const filtered = triniSlangList.filter((item) => {
+        if (!q && activeSlangCat !== "All" && item.category !== activeSlangCat) {
+          return false;
+        }
+        if (q) {
+          return (
+            item.name.toLowerCase().includes(q) ||
+            item.meaning.toLowerCase().includes(q) ||
+            item.visual.toLowerCase().includes(q) ||
+            item.category.toLowerCase().includes(q) ||
+            `#${item.num}` === q
+          );
+        }
+        return true;
+      });
+
+      grid.innerHTML = "";
+      if (gridCountEl) {
+        gridCountEl.textContent = `${filtered.length} icons`;
+      }
+      if (catBadgeEl) {
+        catBadgeEl.textContent = `${filtered.length} of ${triniSlangList.length} Slang Icons`;
+      }
+      if (sectionTitleEl) {
+        sectionTitleEl.textContent =
+          activeSlangCat === "All"
+            ? "Trini Slang Pictorial Hub (All 88 Items)"
+            : `Trini Slang: ${activeSlangCat}`;
+      }
+      if (gridTitleEl) {
+        gridTitleEl.textContent = q
+          ? `Results for "${slangQuery}"`
+          : "Tap Any Icon to Copy or Send";
+      }
+
+      if (filtered.length === 0) {
+        const empty = document.createElement("div");
+        empty.style.gridColumn = "1 / -1";
+        empty.style.textAlign = "center";
+        empty.style.padding = "28px 12px";
+        empty.style.color = "var(--text-muted)";
+        empty.innerHTML = `<strong>No matching Trini Slang icon found.</strong><br/><span style="font-size:12px;">Try searching "Red flag", "Cap", "Take a set", "Eagle", or "Vex".</span>`;
+        grid.appendChild(empty);
+        return;
+      }
+
+      if (!selectedSlang || !filtered.some((i) => i.id === selectedSlang.id)) {
+        updateSelectedSlang(filtered[0], false);
+      }
+
+      filtered.forEach((item) => {
+        const card = document.createElement("article");
+        const isSelected = selectedSlang && selectedSlang.id === item.id;
+        card.className = `sticker-card ${isSelected ? "selected" : ""}`;
+        card.setAttribute("data-slang-id", item.id);
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+
+        card.innerHTML = `
+          <div class="sticker-checkerboard">
+            <img src="${item.webpUrl}" alt="${item.name}" loading="lazy" onerror="this.src='${item.pngUrl}'" />
+            <span class="quick-send-badge" title="Selected">${isSelected ? "✓" : "+"}</span>
+            <span class="style-tag-mini">#${item.num}</span>
+          </div>
+          <div class="sticker-meta">
+            <div class="sticker-label">${item.name}</div>
+            ${
+              showSlangMeanings
+                ? `<div class="sticker-meaning-short" title="${item.meaning}">${item.meaning}</div>`
+                : ""
+            }
+          </div>
+        `;
+
+        card.addEventListener("click", () => updateSelectedSlang(item, true));
+        grid.appendChild(card);
+      });
+    }
+
+    searchInput?.addEventListener("input", (e) => {
+      slangQuery = e.target.value;
+      if (clearBtn) clearBtn.style.display = slangQuery ? "inline-block" : "none";
+      renderSlangCategoryRail();
+      renderSlangGrid();
+    });
+
+    clearBtn?.addEventListener("click", () => {
+      slangQuery = "";
+      if (searchInput) searchInput.value = "";
+      clearBtn.style.display = "none";
+      renderSlangCategoryRail();
+      renderSlangGrid();
+    });
+
+    document.querySelectorAll(".slang-quick-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const q = chip.getAttribute("data-slang-query") || "";
+        slangQuery = q;
+        if (searchInput) searchInput.value = q;
+        if (clearBtn) clearBtn.style.display = "inline-block";
+        renderSlangCategoryRail();
+        renderSlangGrid();
+      });
+    });
+
+    toggleMeaningBtn?.addEventListener("click", () => {
+      showSlangMeanings = !showSlangMeanings;
+      toggleMeaningBtn.innerHTML = `<span>📖 Meanings: ${showSlangMeanings ? "ON" : "OFF"}</span>`;
+      renderSlangGrid();
+    });
+
+    downloadZipBtn?.addEventListener("click", () => {
+      downloadFileUrl("assets/packs/trini-slang-all-88.zip", "trini-slang-all-88-stickers.zip");
+      showToast("Downloading All 88 Trini Slang 3D Icons (.ZIP)!");
+    });
+
+    copyBtn?.addEventListener("click", () => copyStickerToClipboard(selectedSlang));
+    sendBtn?.addEventListener("click", () => directShareSticker(selectedSlang));
+    pngBtn?.addEventListener("click", () => {
+      if (!selectedSlang) return;
+      downloadFileUrl(selectedSlang.pngUrl, `${selectedSlang.id}.png`);
+      showToast(`Downloaded "${selectedSlang.name}" 512×512 PNG!`);
+    });
+    webpBtn?.addEventListener("click", () => {
+      if (!selectedSlang) return;
+      downloadFileUrl(selectedSlang.webpUrl, `${selectedSlang.id}.webp`);
+      showToast(`Downloaded "${selectedSlang.name}" 512×512 WebP!`);
+    });
+    discordBtn?.addEventListener("click", async () => {
+      if (!selectedSlang) return;
+      const blob = await fetchStickerPngBlob(selectedSlang, 128);
+      triggerBlobDownload(blob, `${selectedSlang.id}-discord-128px.png`);
+      showToast(`Downloaded "${selectedSlang.name}" 128×128 Discord PNG!`);
+    });
+
+    renderSlangCategoryRail();
+    renderSlangGrid();
+    if (selectedSlang) updateSelectedSlang(selectedSlang, false);
+  }
+
   // Event Listeners
   function bindEvents() {
     document.querySelectorAll(".segment-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".segment-btn").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
+
+        if (btn.id === "headerJumpSlangBtn") {
+          document.querySelectorAll(".nav-tab-btn").forEach((t) => {
+            t.classList.toggle("active", t.getAttribute("data-nav-target") === "view-slang");
+          });
+          document.querySelectorAll(".view-panel").forEach((panel) => {
+            panel.classList.toggle("active", panel.id === "view-slang");
+          });
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+
+        // Ensure Packs view is active when clicking style filters
+        document.querySelectorAll(".nav-tab-btn").forEach((t) => {
+          t.classList.toggle("active", t.getAttribute("data-nav-target") === "view-packs");
+        });
+        document.querySelectorAll(".view-panel").forEach((panel) => {
+          panel.classList.toggle("active", panel.id === "view-packs");
+        });
+
         activeStyleFilter = btn.getAttribute("data-style-filter") || "all";
         renderStickerGrid();
       });
@@ -620,6 +895,7 @@
   renderActivePackHeader();
   renderStickerGrid();
   if (selectedSticker) updateSelectedSticker(selectedSticker, false);
+  initTriniSlangSection();
   initCaptionStudio();
   initIconModal();
   bindEvents();
