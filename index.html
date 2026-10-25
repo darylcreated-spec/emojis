@@ -15,27 +15,28 @@
   <meta property="og:image" content="https://peeloff.vercel.app/assets/icons/icon-512.png" />
   <title>PeelOff — Expressive 3D Stickers &amp; Emojis</title>
 
-  <!-- PWA Home Screen Icons & Obsidian Vinyl Peel Startup Splash -->
-  <link rel="manifest" href="manifest.json" />
-  <link id="faviconLink" rel="icon" type="image/png" href="assets/icons/favicon.png" />
-  <link id="appleTouchIconLink" rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
-  <link rel="apple-touch-startup-image" href="assets/icons/apple-splash-portrait.png" />
+  <!-- PWA Home Screen Icons & PeelOff Startup Splash -->
+  <link rel="manifest" href="manifest.json?v=peeloff" />
+  <link id="faviconLink" rel="icon" type="image/png" href="assets/icons/favicon.png?v=peeloff" />
+  <link id="appleTouchIconLink" rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png?v=peeloff" />
+  <link rel="apple-touch-startup-image" href="assets/icons/apple-splash-portrait.png?v=peeloff" />
 
   <!-- Typography: Epilogue & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=peeloff" />
 </head>
 <body>
-  <!-- Splash A: Obsidian Vinyl Peel Launch Screen -->
+  <!-- PeelOff Launch Splash Screen -->
   <div id="pwaSplashScreen" class="pwa-splash-screen" role="dialog" aria-label="PeelOff Launch Splash">
     <div class="pwa-splash-inner">
       <div class="pwa-splash-emblem-wrap">
-        <img src="assets/icons/splash-emblem.png" alt="PeelOff Vinyl Peel Emblem" class="pwa-splash-emblem" />
+        <img src="assets/icons/splash-emblem.png?v=peeloff" alt="PeelOff 3D Vinyl Peel Emblem" class="pwa-splash-emblem" />
       </div>
-      <div class="pwa-splash-tagline">PEEL &amp; DROP 3D STICKERS &amp; SLANG FOR EVERY APP</div>
+      <div class="pwa-splash-brand">PeelOff</div>
+      <div class="pwa-splash-tagline">PEEL &amp; DROP 3D STICKERS &amp; EMOJIS FOR EVERY APP</div>
     </div>
   </div>
 
@@ -45,7 +46,7 @@
       <div class="header-top-row">
         <div class="brand-cluster">
           <button id="openIconModalBtn" class="app-icon-btn" title="Tap to view PeelOff App Icon &amp; Splash Screen">
-            <img id="headerAppIcon" src="assets/icons/icon-1-vinyl-peel.png" alt="PeelOff Icon" />
+            <img id="headerAppIcon" src="assets/icons/icon-1-vinyl-peel.png?v=peeloff" alt="PeelOff Icon" />
           </button>
           <div class="brand-titles">
             <h1 class="brand-name">PeelOff</h1>
@@ -396,8 +397,8 @@
     </div>
   </nav>
 
-  <script src="data/packs.js"></script>
-  <script src="data/trini-slang.js"></script>
-  <script src="app.js"></script>
+  <script src="data/packs.js?v=peeloff"></script>
+  <script src="data/trini-slang.js?v=peeloff"></script>
+  <script src="app.js?v=peeloff"></script>
 </body>
 </html>

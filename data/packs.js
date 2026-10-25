@@ -6,25 +6,25 @@ window.STICKERBOOM_ICONS = [
     id: "icon-1",
     name: "Tropical Neon Peel 'P' (Default)",
     subtitle: "3D Curling Vinyl Monogram + Corner Peel",
-    src: "assets/icons/icon-1-vinyl-peel.png"
+    src: "assets/icons/icon-1-vinyl-peel.png?v=peeloff"
   },
   {
     id: "icon-2",
     name: "Holographic Corner Curl",
     subtitle: "Iridescent Foil Peel + 3D Island Stickers",
-    src: "assets/icons/icon-2-emoji-pop.png"
+    src: "assets/icons/icon-2-emoji-pop.png?v=peeloff"
   },
   {
     id: "icon-3",
     name: "3D Hand Peeling Sticker",
     subtitle: "Tactile Die-Cut Shades Emoji Peel",
-    src: "assets/icons/icon-3-comic-burst.png"
+    src: "assets/icons/icon-3-comic-burst.png?v=peeloff"
   },
   {
     id: "icon-4",
     name: "Golden Banana & Vinyl Peel",
     subtitle: "3D Plantain Peel + Winking Emoji",
-    src: "assets/icons/icon-4-sticker-stack.png"
+    src: "assets/icons/icon-4-sticker-stack.png?v=peeloff"
   }
 ];
 
