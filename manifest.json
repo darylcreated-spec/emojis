@@ -1,7 +1,7 @@
 {
-  "name": "PeelOff — Expressive 3D Stickers & Trini Slang",
+  "name": "PeelOff — Expressive 3D Stickers & Emojis",
   "short_name": "PeelOff",
-  "description": "186 Expressive Cultural Emojis & Wordless 3D Trini Slang Stickers for Instagram, TikTok, iMessage, Telegram, Messenger, X, Discord & WhatsApp.",
+  "description": "Expressive 3D Stickers & Emojis for Instagram, TikTok, iMessage, Telegram, Messenger, X, Discord & WhatsApp.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
