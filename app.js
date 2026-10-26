@@ -2,13 +2,45 @@
 // 100% Real Local PNG, WebP & .ZIP Pack Engine for IG, TikTok, iMessage, Telegram, Discord & WhatsApp
 
 (function () {
-  const packs = window.STICKERBOOM_PACKS || [];
+  const basePacks = window.STICKERBOOM_PACKS || [];
   const icons = window.STICKERBOOM_ICONS || [];
   const triniSlangList = window.STICKERBOOM_TRINI_SLANG || [];
 
-  // Flatten all 98 stickers with pack reference + Animated WebP & GIF URLs
+  // Enrich all 88 Trini Slang items with Animated WebP & GIF URLs
+  triniSlangList.forEach((item) => {
+    item.webpUrl = `assets/stickers/${item.id}.webp?v=4`;
+    item.pngUrl = `assets/stickers/${item.id}.png?v=4`;
+    item.animWebpUrl = `assets/animated/${item.id}.webp?v=4`;
+    item.animGifUrl = `assets/animated/${item.id}.gif?v=4`;
+  });
+
+  // Group 88 Trini Slang items into unified category packs
+  const SLANG_CATEGORIES = [
+    "Greetings & Links",
+    "Co-Signs & Facts",
+    "Disbelief & Comedy",
+    "Attitude & Shade",
+    "People & Drama",
+    "Vibes, Belly & Money"
+  ];
+
+  const slangCategoryPacks = SLANG_CATEGORIES.map((cat, idx) => {
+    const items = triniSlangList.filter((i) => i.category === cat);
+    return {
+      id: `slang-cat-${idx + 1}`,
+      number: basePacks.length + idx + 2,
+      name: `Trini Slang: ${cat}`,
+      shortName: cat,
+      badge: "TRINI SLANG",
+      badgeColor: "#FF2A5F",
+      zipUrl: "assets/packs/trini-slang-all-88.zip",
+      stickers: items
+    };
+  });
+
+  // Flatten all 98 base pack stickers + all 88 Trini Slang items = 186 total unified stickers
   const allStickers = [];
-  packs.forEach((pack) => {
+  basePacks.forEach((pack) => {
     pack.stickers.forEach((s) => {
       allStickers.push({
         ...s,
@@ -23,14 +55,43 @@
     });
   });
 
-  // Enrich all 88 Trini Slang items with Animated WebP & GIF URLs
   triniSlangList.forEach((item) => {
-    item.animWebpUrl = `assets/animated/${item.id}.webp?v=4`;
-    item.animGifUrl = `assets/animated/${item.id}.gif?v=4`;
+    allStickers.push({
+      ...item,
+      packId: `slang-cat-${SLANG_CATEGORIES.indexOf(item.category) + 1}`,
+      packNumber: `S#${item.num}`,
+      packName: `Trini Slang • ${item.category}`
+    });
   });
 
+  // Build Unified Pack Rail (All 186 + 8 Packs + Slang All 88 + 6 Slang Categories)
+  const packs = [
+    {
+      id: "all-trini-186",
+      number: 0,
+      name: "All Trini Slang & Cultural Stickers (186)",
+      shortName: "All Trini",
+      badge: "ALL 186 STICKERS",
+      badgeColor: "#FF2A5F",
+      zipUrl: "assets/packs/trini-slang-all-88.zip",
+      stickers: allStickers
+    },
+    ...basePacks,
+    {
+      id: "trini-slang-all-88",
+      number: basePacks.length + 1,
+      name: "Trini Slang Pictorials (88 Icons)",
+      shortName: "Slang Pictorials",
+      badge: "88 PICTORIAL SLANG",
+      badgeColor: "#00E5FF",
+      zipUrl: "assets/packs/trini-slang-all-88.zip",
+      stickers: triniSlangList
+    },
+    ...slangCategoryPacks
+  ];
+
   // State
-  let activePackId = packs[0]?.id || "pack-1-social-slang";
+  let activePackId = "all-trini-186";
   let activeStyleFilter = "all"; // 'all' | '3d' | 'sticker'
   let activePlatform = "all"; // 'all' | 'instagram' | 'imessage' | 'telegram' | 'discord' | 'whatsapp'
   let isAnimatedMode = true; // Live animated WebP/GIF mode ON by default
@@ -122,20 +183,23 @@
     }
     activePackCard.style.display = "block";
     packBadge.textContent = pack.badge;
-    packBadge.style.backgroundColor = pack.badgeColor || "#E03A26";
-    packVol.textContent = `Pack ${pack.number} of ${packs.length} • ${pack.stickers.length} Stickers`;
-    packTitle.textContent = `Pack ${pack.number}: ${pack.name}`;
+    packBadge.style.backgroundColor = pack.badgeColor || "#FF2A5F";
+    packVol.textContent = `${pack.stickers.length} Animated & Static Stickers`;
+    packTitle.textContent = pack.name;
     if (downloadPackBtnLabel) {
-      downloadPackBtnLabel.textContent = `Download Pack ${pack.number} (.ZIP — ${pack.stickers.length} Stickers)`;
+      downloadPackBtnLabel.textContent = `Download Collection (.ZIP — ${pack.stickers.length} Stickers)`;
     }
   }
 
   // Filter Stickers
   function getFilteredStickers() {
     const q = searchQuery.trim().toLowerCase();
+    const activePack = packs.find((p) => p.id === activePackId);
     let pool = q
       ? allStickers
-      : allStickers.filter((s) => s.packId === activePackId);
+      : activePack
+      ? activePack.stickers.map((s) => allStickers.find((a) => a.id === s.id) || s)
+      : allStickers;
 
     if (activeStyleFilter !== "all") {
       pool = pool.filter((s) => s.style === activeStyleFilter);
@@ -147,6 +211,7 @@
           s.name.toLowerCase().includes(q) ||
           (s.variations && s.variations.toLowerCase().includes(q)) ||
           (s.meaning && s.meaning.toLowerCase().includes(q)) ||
+          (s.visual && s.visual.toLowerCase().includes(q)) ||
           (s.packName && s.packName.toLowerCase().includes(q))
       );
     }
@@ -198,6 +263,7 @@
         </div>
         <div class="sticker-meta">
           <div class="sticker-label">${sticker.name}</div>
+          ${sticker.meaning ? `<div class="sticker-meaning-short" title="${sticker.meaning}">${sticker.meaning}</div>` : ""}
         </div>
       `;
 
@@ -362,7 +428,7 @@
   function exportActivePack() {
     const pack = packs.find((p) => p.id === activePackId) || packs[0];
     if (!pack) return;
-    const zipUrl = `assets/packs/${pack.id}.zip`;
+    const zipUrl = pack.zipUrl || `assets/packs/${pack.id}.zip`;
     downloadFileUrl(zipUrl, `${pack.id}-stickers.zip`);
     showToast(`Downloading "${pack.name}" (${pack.stickers.length} Stickers .ZIP)`);
   }
@@ -383,18 +449,13 @@
     allStickers.forEach((s) => {
       const opt = document.createElement("option");
       opt.value = s.id;
-      opt.textContent = `${s.name} (Pack ${s.packNumber})`;
+      opt.textContent = s.num
+        ? `${s.name} (Trini Slang #${s.num})`
+        : `${s.name} (Pack ${s.packNumber})`;
       baseSelect.appendChild(opt);
     });
 
-    triniSlangList.forEach((s) => {
-      const opt = document.createElement("option");
-      opt.value = s.id;
-      opt.textContent = `🗣️ ${s.name} (Trini Slang #${s.num})`;
-      baseSelect.appendChild(opt);
-    });
-
-    const combinedStudioPool = [...allStickers, ...triniSlangList];
+    const combinedStudioPool = allStickers;
 
     function drawRoundedRect(c, x, y, w, h, r) {
       c.beginPath();
