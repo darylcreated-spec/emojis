@@ -825,30 +825,42 @@
 
   // Event Listeners
   function bindEvents() {
+    function switchTriniSubView(targetViewId) {
+      document.querySelectorAll(".trini-subtab-btn").forEach((b) => {
+        const isMatch = b.getAttribute("data-trini-subview") === targetViewId;
+        b.classList.toggle("active", isMatch);
+        b.setAttribute("aria-selected", isMatch ? "true" : "false");
+      });
+
+      document.querySelectorAll(".nav-tab-btn").forEach((t) => {
+        t.classList.toggle("active", t.getAttribute("data-nav-target") === targetViewId);
+      });
+
+      document.querySelectorAll(".view-panel").forEach((panel) => {
+        panel.classList.toggle("active", panel.id === targetViewId);
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.querySelectorAll(".trini-subtab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const targetViewId = btn.getAttribute("data-trini-subview") || "view-packs";
+        switchTriniSubView(targetViewId);
+      });
+    });
+
+    document.getElementById("triniHubFlagBadge")?.addEventListener("click", () => {
+      const currentActive = document.querySelector(".trini-subtab-btn.active");
+      const targetViewId = currentActive?.getAttribute("data-trini-subview") || "view-packs";
+      switchTriniSubView(targetViewId);
+    });
+
     document.querySelectorAll(".segment-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".segment-btn").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
 
-        if (btn.id === "headerJumpSlangBtn") {
-          document.querySelectorAll(".nav-tab-btn").forEach((t) => {
-            t.classList.toggle("active", t.getAttribute("data-nav-target") === "view-slang");
-          });
-          document.querySelectorAll(".view-panel").forEach((panel) => {
-            panel.classList.toggle("active", panel.id === "view-slang");
-          });
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          return;
-        }
-
-        // Ensure Packs view is active when clicking style filters
-        document.querySelectorAll(".nav-tab-btn").forEach((t) => {
-          t.classList.toggle("active", t.getAttribute("data-nav-target") === "view-packs");
-        });
-        document.querySelectorAll(".view-panel").forEach((panel) => {
-          panel.classList.toggle("active", panel.id === "view-packs");
-        });
-
+        switchTriniSubView("view-packs");
         activeStyleFilter = btn.getAttribute("data-style-filter") || "all";
         renderStickerGrid();
       });
@@ -965,6 +977,14 @@
         const targetId = tab.getAttribute("data-nav-target");
         document.querySelectorAll(".nav-tab-btn").forEach((t) => t.classList.remove("active"));
         tab.classList.add("active");
+
+        if (targetId === "view-packs" || targetId === "view-slang") {
+          document.querySelectorAll(".trini-subtab-btn").forEach((b) => {
+            const isMatch = b.getAttribute("data-trini-subview") === targetId;
+            b.classList.toggle("active", isMatch);
+            b.setAttribute("aria-selected", isMatch ? "true" : "false");
+          });
+        }
 
         document.querySelectorAll(".view-panel").forEach((panel) => {
           panel.classList.toggle("active", panel.id === targetId);

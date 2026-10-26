@@ -260,24 +260,101 @@ html, body {
   color: var(--peel-gold);
 }
 
-/* Segmented Style Switcher Pill with Icons */
-.segmented-control {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+/* Top Tab: Trini Slang with National Flag on the Side + Pack & Slang Inside */
+.trini-top-tab-shell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   background: #090B10;
-  padding: 4px;
+  padding: 5px 6px 5px 10px;
   border-radius: 9999px;
   margin-top: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 42, 95, 0.38);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-.segment-btn {
-  min-height: 36px;
+.trini-flag-tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 4px 6px 4px 2px;
+  cursor: pointer;
+  color: var(--text-charcoal);
+  flex-shrink: 0;
+}
+
+.tt-flag-svg {
+  flex-shrink: 0;
+  border-radius: 3.5px;
+  box-shadow: 0 2px 6px rgba(218, 26, 53, 0.45);
+}
+
+.trini-tab-title {
+  font-family: var(--font-headline);
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+.trini-subtabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3px;
+  border-radius: 9999px;
+  flex: 1;
+  max-width: 265px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.trini-subtab-btn {
+  min-height: 32px;
   border: none;
   background: transparent;
   border-radius: 9999px;
   font-family: var(--font-body);
   font-size: 11.5px;
+  font-weight: 800;
+  color: var(--text-slate);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 10px;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.trini-subtab-btn.active {
+  background: var(--peel-cta-gradient);
+  color: #0B0D13;
+  box-shadow: 0 2px 10px rgba(255, 42, 95, 0.35);
+}
+
+.pack-style-filter-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #090B10;
+  padding: 3px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.segment-btn {
+  min-height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 9999px;
+  font-family: var(--font-body);
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-slate);
   cursor: pointer;
@@ -286,7 +363,7 @@ html, body {
   justify-content: center;
   gap: 5px;
   transition: all 0.16s ease;
-  padding: 0 6px;
+  padding: 0 10px;
 }
 
 .segment-btn svg {
