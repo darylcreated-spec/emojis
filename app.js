@@ -17,16 +17,16 @@
         packName: pack.name,
         webpUrl: `assets/stickers/${s.id}.webp`,
         pngUrl: `assets/stickers/${s.id}.png`,
-        animWebpUrl: `assets/animated/${s.id}.webp`,
-        animGifUrl: `assets/animated/${s.id}.gif`
+        animWebpUrl: `assets/animated/${s.id}.webp?v=2`,
+        animGifUrl: `assets/animated/${s.id}.gif?v=2`
       });
     });
   });
 
   // Enrich all 88 Trini Slang items with Animated WebP & GIF URLs
   triniSlangList.forEach((item) => {
-    item.animWebpUrl = `assets/animated/${item.id}.webp`;
-    item.animGifUrl = `assets/animated/${item.id}.gif`;
+    item.animWebpUrl = `assets/animated/${item.id}.webp?v=2`;
+    item.animGifUrl = `assets/animated/${item.id}.gif?v=2`;
   });
 
   // State
@@ -262,9 +262,14 @@
     });
   }
 
-  // Copy Transparent Sticker to Clipboard (Sends ONLY the image, no text)
+  // Copy Transparent Sticker to Clipboard (or Share Animated GIF when Animated Mode is ON)
   async function copyStickerToClipboard(sticker) {
     if (!sticker) return;
+    if (isAnimatedMode) {
+      showToast(`Opening Share Sheet for Animated GIF (Clipboards only support static PNG)`);
+      await directShareSticker(sticker);
+      return;
+    }
     try {
       const size = activePlatform === "discord" ? 128 : 512;
       const pngBlob = await fetchStickerPngBlob(sticker, size);
@@ -283,7 +288,7 @@
     }
   }
 
-  // Native Mobile Share Sheet (Supports Animated GIF / Animated WebP + Static PNG/WebP)
+  // Native Mobile Share Sheet (Always uses 2.16s Looping GIF in Animated Mode so WhatsApp/IG/iMessage animate it!)
   async function directShareSticker(sticker) {
     if (!sticker) return;
     try {
@@ -293,15 +298,11 @@
       let mime = "image/png";
 
       if (isAnimatedMode) {
-        if (useWebp) {
-          fileUrl = sticker.animWebpUrl;
-          ext = "webp";
-          mime = "image/webp";
-        } else {
-          fileUrl = sticker.animGifUrl;
-          ext = "gif";
-          mime = "image/gif";
-        }
+        // IMPORTANT: Mobile OS Share Sheets (especially WhatsApp) flatten shared .webp files to static images.
+        // Sharing a 2.16-second looping .gif makes WhatsApp, iMessage, Instagram, Discord & Telegram play the animation!
+        fileUrl = sticker.animGifUrl;
+        ext = "gif";
+        mime = "image/gif";
       } else if (useWebp) {
         fileUrl = sticker.webpUrl;
         ext = "webp";
@@ -325,13 +326,8 @@
 
     // Fallback: Download exact platform image format
     if (isAnimatedMode) {
-      if (activePlatform === "whatsapp" || activePlatform === "telegram") {
-        downloadFileUrl(sticker.animWebpUrl, `${sticker.id}-animated.webp`);
-        showToast(`Saved "${sticker.name}" Animated WebP!`);
-      } else {
-        downloadFileUrl(sticker.animGifUrl, `${sticker.id}-animated.gif`);
-        showToast(`Saved "${sticker.name}" Animated GIF!`);
-      }
+      downloadFileUrl(sticker.animGifUrl, `${sticker.id}-animated.gif`);
+      showToast(`Saved "${sticker.name}" Animated GIF!`);
     } else if (activePlatform === "whatsapp" || activePlatform === "telegram") {
       downloadFileUrl(sticker.webpUrl, `${sticker.id}.webp`);
       showToast(`Saved "${sticker.name}" 512×512 WebP!`);
