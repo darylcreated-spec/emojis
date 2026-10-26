@@ -15,18 +15,18 @@
         packId: pack.id,
         packNumber: pack.number,
         packName: pack.name,
-        webpUrl: `assets/stickers/${s.id}.webp`,
-        pngUrl: `assets/stickers/${s.id}.png`,
-        animWebpUrl: `assets/animated/${s.id}.webp?v=3`,
-        animGifUrl: `assets/animated/${s.id}.gif?v=3`
+        webpUrl: `assets/stickers/${s.id}.webp?v=4`,
+        pngUrl: `assets/stickers/${s.id}.png?v=4`,
+        animWebpUrl: `assets/animated/${s.id}.webp?v=4`,
+        animGifUrl: `assets/animated/${s.id}.gif?v=4`
       });
     });
   });
 
   // Enrich all 88 Trini Slang items with Animated WebP & GIF URLs
   triniSlangList.forEach((item) => {
-    item.animWebpUrl = `assets/animated/${item.id}.webp?v=3`;
-    item.animGifUrl = `assets/animated/${item.id}.gif?v=3`;
+    item.animWebpUrl = `assets/animated/${item.id}.webp?v=4`;
+    item.animGifUrl = `assets/animated/${item.id}.gif?v=4`;
   });
 
   // State

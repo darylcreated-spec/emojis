@@ -36,7 +36,7 @@ def classify_action(sid: str) -> str:
     if any(k in s for k in (
         "maco", "watch-nah", "see-trouble", "look-trouble", "hear-nah", "fuh-real",
         "owah", "jokin", "serious", "sus", "side-eye", "wha-go-on", "wha-appen",
-        "freshwater", "yuh-too-fas", "mauvais-langue", "fass", "high-beam",
+        "yuh-too-fas", "mauvais-langue", "fass", "high-beam",
         "lemme-see", "how-yuh-mean", "be-so-for-real", "wha-yuh-on", "wha-yuh-say",
         "lowkey", "douen"
     )):
@@ -66,7 +66,7 @@ def classify_action(sid: str) -> str:
     if any(k in s for k in (
         "doubles", "bake", "buss-up", "sunday-lunch", "pelau", "corn-soup",
         "pholourie", "crix", "crab", "black-cake", "parsad", "sweet-bag",
-        "sawine", "cutters", "bush-tea", "ate", "crumbs", "bess", "sweet", "belly", "sauce"
+        "sawine", "cutters", "bush-tea", "she-ate", "he-ate", "crumbs", "bess", "sweet", "belly", "sauce"
     )):
         return "food_aroma"
     # 10. Soca / Bass Thump / Soundwaves / Carnival Mas
@@ -83,11 +83,11 @@ def classify_action(sid: str) -> str:
         "tired", "stress", "cry", "sad", "hurt", "broke", "pressure", "hard-lucks"
     )):
         return "tabanca_rain"
-    # 12. Speed Dash / Peel Off / Ghost / On the way
+    # 12. Speed Dash / Peel Off / Ghost / On the way / Foreign Jet
     if any(k in s for k in (
         "maxi", "goat-race", "ghost", "speed", "move", "run", "pass", "dip", "fly",
         "fast", "highway-traffic", "ah-coming", "ah-gone", "ah-reach", "just-now",
-        "leh-we-go", "right-dey"
+        "leh-we-go", "right-dey", "freshwater", "foreign", "doh-tote"
     )):
         return "speed_dash"
     # 13. Stop / No Cap / Reject Head-Shake

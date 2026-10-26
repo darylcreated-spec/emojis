@@ -216,15 +216,15 @@ window.STICKERBOOM_PACKS = [
       },
       {
         id: "freshwater-yankee",
-        name: "FRESHWATER YANKEE",
-        variations: "Freshwater • Fake twang",
-        meaning: "A Trini who visits Miami or Brooklyn for 2 weeks and returns with a fake American accent.",
+        name: "FOREIGN",
+        variations: "In Foreign • Abroad • Jetting Off",
+        meaning: "Travelling abroad, living in 'foreign' (NY, Miami, Toronto, London), or coming back with a brand new accent.",
         chatSender: "Cousin Shelly",
-        chatIncoming: "Oh my gosh guys, how do you say it again... 'Doub-les'?",
-        chatReplyContext: "Calling out a fake foreign accent",
-        style: "sticker",
-        emojis: ["✈️", "🗽", "😂"],
-        accent: "#0EA5E9"
+        chatIncoming: "Just touch down in JFK, breeze cold like dog nose out here!",
+        chatReplyContext: "Out in Foreign / Travelling abroad",
+        style: "3d",
+        emojis: ["✈️", "🛂", "🧳"],
+        accent: "#00E5FF"
       },
       {
         id: "just-picong",
