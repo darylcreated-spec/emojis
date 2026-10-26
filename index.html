@@ -85,7 +85,7 @@
 
         <div class="trini-subtabs" role="tablist" aria-label="Trini Slang Collection Filter" style="grid-template-columns: repeat(2, 1fr); max-width: 245px;">
           <button class="segment-btn active" data-style-filter="all" role="tab">
-            <span>All 3D (110)</span>
+            <span>All 3D (128)</span>
           </button>
           <button class="segment-btn" data-style-filter="culture" role="tab">
             <span>Food &amp; Culture</span>
@@ -167,61 +167,84 @@
         </div>
       </section>
 
-      <!-- Grid Section Header -->
+      <!-- Grid Section Header + Meanings Toggle -->
       <div class="grid-header">
-        <h3 id="gridTitle">Tap Any Sticker to Copy or Send</h3>
-        <span id="gridCount" class="grid-count">186 stickers</span>
+        <h3 id="gridTitle">Tap Any Sticker to Preview • Tap ★ to Favorite</h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button id="toggleMainMeaningsBtn" class="btn-micro-action" style="min-height:28px; padding:0 10px;" title="Toggle Slang Meanings on Sticker Cards">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span id="toggleMainMeaningsLabel">Meanings: ON</span>
+          </button>
+          <span id="gridCount" class="grid-count">128 stickers</span>
+        </div>
       </div>
 
-      <!-- 3-Column Mobile Sticker Grid -->
-      <section id="stickerGrid" class="sticker-grid" aria-live="polite"></section>
+      <!-- Desktop Split-View Wrapper: Sticker Grid + Sticky Quick-Peel Dock -->
+      <div class="explorer-split-layout">
+        <!-- Mobile/Desktop Sticker Grid -->
+        <section id="stickerGrid" class="sticker-grid" aria-live="polite"></section>
 
-      <!-- Selected Sticker Inspector & Export Card (Zero Fake Chat / Zero Descriptions) -->
-      <section id="liveChatSection" class="live-chat-card">
-        <div class="drawer-handle"></div>
-        <div class="selected-sticker-showcase">
-          <div class="selected-sticker-thumb sticker-checkerboard">
-            <img id="chatPreviewStickerImg" src="assets/stickers/ent.webp" alt="Selected Sticker" />
+        <!-- Sticky Bottom Quick-Peel Dock (Mobile) / Sticky Right Sidebar (Desktop) -->
+        <section id="liveChatSection" class="live-chat-card sticky-quick-peel-dock">
+          <div class="dock-header-row">
+            <div class="selected-sticker-showcase">
+              <div class="selected-sticker-thumb sticker-checkerboard">
+                <img id="chatPreviewStickerImg" src="assets/stickers/steups.webp" alt="Selected Sticker" />
+              </div>
+              <div class="selected-sticker-info">
+                <span id="selectedStickerPackTag" class="dialect-tag">SELECTED 3D STICKER</span>
+                <h4 id="liveChatStickerTitle" class="selected-sticker-title">STEUPS</h4>
+                <span id="selectedStickerFormatBadge" class="selected-format-meta">Animated GIF &amp; WebP + 512px PNG</span>
+              </div>
+            </div>
+            <div class="dock-quick-pills">
+              <button id="hearSlangAudioBtn" class="dock-icon-pill dock-pill-audio" type="button" title="Hear Trini Slang Sound FX &amp; Voice Cadence">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                <span>Hear</span>
+              </button>
+              <button id="remixInStudioBtn" class="dock-icon-pill dock-pill-remix" type="button" title="Remix &amp; Add Text in Stamp Studio">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <span>Remix</span>
+              </button>
+              <button id="toggleDockMoreBtn" class="dock-icon-pill" type="button" title="Show/Hide Format Downloads">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </button>
+            </div>
           </div>
-          <div class="selected-sticker-info">
-            <span class="dialect-tag">SELECTED STICKER</span>
-            <h4 id="liveChatStickerTitle" class="selected-sticker-title">ENT?!</h4>
-            <span id="selectedStickerFormatBadge" class="selected-format-meta">512×512 Transparent PNG &amp; WebP</span>
+
+          <!-- Primary 2-Column Mobile Actions: Copy for Any Social + Direct Share -->
+          <div class="social-export-actions">
+            <button id="copyStickerClipboardBtn" class="btn-secondary-pill" style="width:100%;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy Sticker</span>
+            </button>
+            <button id="directSendSocialBtn" class="btn-wa-primary" style="width:100%;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Direct Send</span>
+            </button>
           </div>
-        </div>
 
-        <!-- Primary 2-Column Mobile Actions: Copy for Any Social + Direct Share -->
-        <div class="social-export-actions">
-          <button id="copyStickerClipboardBtn" class="btn-secondary-pill" style="width:100%;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            <span>Copy Sticker</span>
-          </button>
-          <button id="directSendSocialBtn" class="btn-wa-primary" style="width:100%;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            <span>Direct Send</span>
-          </button>
-        </div>
-
-        <!-- Secondary Format Downloads for All Platforms (Animated GIF + Animated WebP + PNG + Discord) -->
-        <div class="social-export-subrow" style="grid-template-columns: repeat(2, 1fr);">
-          <button id="downloadAnimGifBtn" class="btn-micro-action btn-micro-anim" title="Download 512x512 Looping Transparent GIF (iMessage, IG, TikTok, Discord, X)">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span>Animated GIF</span>
-          </button>
-          <button id="downloadAnimWebpBtn" class="btn-micro-action btn-micro-anim" title="Download 512x512 Animated WebP (<500KB for WhatsApp & Telegram)">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span>Animated WebP</span>
-          </button>
-          <button id="downloadPngBtn" class="btn-micro-action" title="Download 512x512 Static Transparent PNG">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Static PNG</span>
-          </button>
-          <button id="downloadDiscordBtn" class="btn-micro-action" title="Download 128x128 for Discord & Slack">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>128px Discord</span>
-          </button>
-        </div>
-      </section>
+          <!-- Secondary Format Downloads for All Platforms (Animated GIF + Animated WebP + PNG + Discord) -->
+          <div id="dockFormatSubrow" class="social-export-subrow" style="grid-template-columns: repeat(4, 1fr);">
+            <button id="downloadAnimGifBtn" class="btn-micro-action btn-micro-anim" title="Download 512x512 Looping GIF (WhatsApp, iMessage, IG, TikTok, Discord)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>GIF</span>
+            </button>
+            <button id="downloadAnimWebpBtn" class="btn-micro-action btn-micro-anim" title="Download 512x512 Animated WebP (<500KB for WhatsApp & Telegram)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>WebP</span>
+            </button>
+            <button id="downloadPngBtn" class="btn-micro-action" title="Download 512x512 Static Transparent PNG">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>PNG</span>
+            </button>
+            <button id="downloadDiscordBtn" class="btn-micro-action" title="Download 128x128 for Discord & Slack">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>128px</span>
+            </button>
+          </div>
+        </section>
+      </div>
     </main>
 
     <!-- VIEW 2: UNIVERSAL TRINI SLANG PICTORIAL SECTION (ALL 88 LITERAL 3D ICONS) -->
@@ -330,20 +353,22 @@
       </section>
     </section>
 
-    <!-- VIEW 2: CUSTOM CAPTION STAMP STUDIO (100% LOCAL CANVAS) -->
+    <!-- VIEW 2: CUSTOM CAPTION STAMP STUDIO 2.0 (100% LOCAL CANVAS + VISUAL 3D STRIP) -->
     <section id="view-captions" class="view-panel">
       <div class="studio-card">
-        <span class="pack-badge">CUSTOM STICKER MAKER</span>
-        <h2 class="pack-title" style="margin-top:6px;">Custom Slang Stamp Builder</h2>
-        <p class="pack-specs">Pick any artwork from our 98 stickers, stamp your own custom text, and export a real 512×512 transparent PNG or WebP directly from your browser.</p>
+        <span class="pack-badge">STAMP STUDIO 2.0</span>
+        <h2 class="pack-title" style="margin-top:6px;">Custom 3D Slang Stamp Builder</h2>
+        <p class="pack-specs">Tap any 3D sticker below (or press <strong>Remix</strong> on any sticker in the main grid), stamp your own custom caption, and export a 512×512 PNG or Animated GIF.</p>
+
+        <!-- Visual Scrollable 3D Thumbnail Strip -->
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label">1. Tap Any 3D Sticker Artwork</label>
+          <div id="studioThumbRail" class="studio-thumb-rail" aria-label="Visual Sticker Picker"></div>
+          <select id="studioBaseSelect" class="form-select" style="margin-top:6px;"></select>
+        </div>
 
         <div class="studio-canvas-wrap sticker-checkerboard">
           <canvas id="customStickerCanvas" width="512" height="512"></canvas>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="studioBaseSelect">1. Base Emoji / Sticker Artwork</label>
-          <select id="studioBaseSelect" class="form-select"></select>
         </div>
 
         <div class="form-group">
@@ -393,11 +418,11 @@
 
       <div class="guide-card">
         <h3>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Full Pack .ZIP Downloads (All 8 Packs)
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Full Collection .ZIP Downloads (All 128 Pure 3D Stickers)
         </h3>
         <ol class="guide-steps">
-          <li>Tap <strong>"Download Full Pack (.ZIP)"</strong> on any pack card to download a real `.zip` archive containing all `512×512` `.png` and `.webp` sticker files in that pack.</li>
-          <li>You can also download the complete 98-sticker master archive: <a href="assets/packs/stickerboom-all-98-stickers.zip" download style="color:var(--peel-cyan);font-weight:800;">Download All 98 Stickers (.ZIP)</a>.</li>
+          <li>Tap <strong>"Download Collection (.ZIP)"</strong> on any category card to download a `.zip` archive containing all `512×512` `.png` and `.webp` sticker files.</li>
+          <li>You can also download the full wordless 3D slang archive directly: <a href="assets/packs/trini-slang-all-88.zip" download style="color:var(--peel-cyan);font-weight:800;">Download Wordless 3D Slang (.ZIP)</a>.</li>
         </ol>
       </div>
 
@@ -482,8 +507,8 @@
     </div>
   </nav>
 
-  <script src="data/packs.js?v=peeloff-v10"></script>
-  <script src="data/trini-slang.js?v=peeloff-v10"></script>
-  <script src="app.js?v=peeloff-v10"></script>
+  <script src="data/packs.js?v=peeloff-v11"></script>
+  <script src="data/trini-slang.js?v=peeloff-v11"></script>
+  <script src="app.js?v=peeloff-v11"></script>
 </body>
 </html>

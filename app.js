@@ -17,31 +17,49 @@
     "chupidee",
     "freshwater-yankee",
     "just-picong",
+    "crapaud-pipe",
+    "trini-chow",
     "doubles-3d",
     "slight-pepper",
     "bake-and-shark",
     "crab-and-dumpling",
+    "buss-up-shut",
+    "sunday-lunch",
+    "corn-soup",
+    "crix-and-cheese",
+    "savannah-coconut",
     "hang-jack",
+    "bullseye-allfours",
     "stress-free-liming",
     "sou-sou-drop",
+    "potcake-dog",
     "steelpan-3d",
     "carnival-mas-3d",
+    "blue-devil",
+    "moko-jumbie",
+    "tassa-chutney",
     "soucouyant",
+    "no-maljo",
     "parang-season",
     "deya-parsad",
-    "maxi-taxi"
+    "maxi-taxi",
+    "highway-traffic",
+    "trini-mom-spoon",
+    "flying-slipper",
+    "wasa-water-gone",
+    "ttec-current-gone"
   ]);
 
   // Enrich all 88 Trini Slang items with Animated WebP & GIF URLs
   triniSlangList.forEach((item) => {
-    item.webpUrl = `assets/stickers/${item.id}.webp?v=5`;
-    item.pngUrl = `assets/stickers/${item.id}.png?v=5`;
-    item.animWebpUrl = `assets/animated/${item.id}.webp?v=5`;
-    item.animGifUrl = `assets/animated/${item.id}.gif?v=5`;
+    item.webpUrl = `assets/stickers/${item.id}.webp?v=6`;
+    item.pngUrl = `assets/stickers/${item.id}.png?v=6`;
+    item.animWebpUrl = `assets/animated/${item.id}.webp?v=6`;
+    item.animGifUrl = `assets/animated/${item.id}.gif?v=6`;
     item.style = "3d";
   });
 
-  // Extract the 22 pure wordless 3D Cultural, Food & Slang icons
+  // Extract the 40 pure wordless 3D Cultural, Food, Mas & Slang icons
   const pureCultureStickers = [];
   basePacks.forEach((pack) => {
     pack.stickers.forEach((s) => {
@@ -53,10 +71,10 @@
           packId: "trini-culture-3d",
           packNumber: pack.number,
           packName: "Trini Food, Mas & Culture",
-          webpUrl: `assets/stickers/${s.id}.webp?v=5`,
-          pngUrl: `assets/stickers/${s.id}.png?v=5`,
-          animWebpUrl: `assets/animated/${s.id}.webp?v=5`,
-          animGifUrl: `assets/animated/${s.id}.gif?v=5`
+          webpUrl: `assets/stickers/${s.id}.webp?v=6`,
+          pngUrl: `assets/stickers/${s.id}.png?v=6`,
+          animWebpUrl: `assets/animated/${s.id}.webp?v=6`,
+          animGifUrl: `assets/animated/${s.id}.gif?v=6`
         });
       }
     });
@@ -86,7 +104,7 @@
     };
   });
 
-  // Combine all 110 pure wordless 3D pictorial stickers (22 Culture/Revamped + 88 Slang Pictorials)
+  // Combine all 128 pure wordless 3D pictorial stickers (40 Culture/Comedy + 88 Slang Pictorials)
   const allStickers = [
     ...pureCultureStickers,
     ...triniSlangList.map((item) => ({
@@ -97,12 +115,36 @@
     }))
   ];
 
-  // Build Unified 3D Pack Rail (All 110 Pure 3D + Food/Mas/Culture + 6 Slang Categories)
+  // Persistent Favorites & Recents (localStorage)
+  const FAV_KEY = "peeloff_favorites_v1";
+  const RECENTS_KEY = "peeloff_recents_v1";
+  let favoriteIds = [];
+  let recentIds = [];
+  try {
+    favoriteIds = JSON.parse(localStorage.getItem(FAV_KEY) || "[]");
+    recentIds = JSON.parse(localStorage.getItem(RECENTS_KEY) || "[]");
+  } catch (_) {}
+
+  function saveFavorites() {
+    try {
+      localStorage.setItem(FAV_KEY, JSON.stringify(favoriteIds));
+    } catch (_) {}
+  }
+
+  function recordRecentSticker(id) {
+    if (!id) return;
+    recentIds = [id, ...recentIds.filter((x) => x !== id)].slice(0, 24);
+    try {
+      localStorage.setItem(RECENTS_KEY, JSON.stringify(recentIds));
+    } catch (_) {}
+  }
+
+  // Build Unified 3D Pack Rail (All 128 Pure 3D + Favorites + Recents + Food/Mas/Culture + 6 Slang Categories)
   const packs = [
     {
       id: "all-trini-3d",
       number: 0,
-      name: "All Trini Slang & Culture 3D Pictorials (110)",
+      name: "All Trini Slang & Culture 3D Pictorials (128)",
       shortName: "All Trini 3D",
       badge: "100% WORDLESS 3D PICTORIAL",
       badgeColor: "#FF2A5F",
@@ -110,11 +152,35 @@
       stickers: allStickers
     },
     {
+      id: "favorites-pack",
+      number: 99,
+      name: "⭐ Your Favorite 3D Stickers",
+      shortName: "⭐ Favorites",
+      badge: "SAVED FAVORITES",
+      badgeColor: "#FFB800",
+      zipUrl: "assets/packs/trini-slang-all-88.zip",
+      get stickers() {
+        return favoriteIds.map((id) => allStickers.find((s) => s.id === id)).filter(Boolean);
+      }
+    },
+    {
+      id: "recents-pack",
+      number: 98,
+      name: "🕒 Recently Used 3D Stickers",
+      shortName: "🕒 Recents",
+      badge: "RECENTLY SENT",
+      badgeColor: "#00E5FF",
+      zipUrl: "assets/packs/trini-slang-all-88.zip",
+      get stickers() {
+        return recentIds.map((id) => allStickers.find((s) => s.id === id)).filter(Boolean);
+      }
+    },
+    {
       id: "trini-culture-3d",
       number: 1,
-      name: "Trini Food, Mas, Folklore & Vibes (22)",
+      name: "Trini Food, Mas, Folklore & Comedy (40)",
       shortName: "Food, Mas & Vibes",
-      badge: "3D CULTURE & VIBES",
+      badge: "3D CULTURE & COMEDY",
       badgeColor: "#FFB800",
       zipUrl: "assets/packs/pack-1-social-slang.zip",
       stickers: pureCultureStickers
@@ -127,10 +193,12 @@
   let activeStyleFilter = "all"; // 'all' | 'culture'
   let activePlatform = "all"; // 'all' | 'instagram' | 'imessage' | 'telegram' | 'discord' | 'whatsapp'
   let isAnimatedMode = true; // Live animated WebP/GIF mode ON by default
+  let showMainMeanings = true;
   let searchQuery = "";
   let selectedSticker = allStickers[0] || null;
   let activeIconId = "icon-1";
   let refreshSlangViewFn = null;
+  let openStickerInStudioFn = null;
 
   // DOM Elements
   const packRail = document.getElementById("packRail");
@@ -284,62 +352,158 @@
     filtered.forEach((sticker) => {
       const card = document.createElement("article");
       const isSelected = selectedSticker && selectedSticker.id === sticker.id;
+      const isFav = favoriteIds.includes(sticker.id);
       card.className = `sticker-card ${isSelected ? "selected" : ""}`;
+      card.setAttribute("data-sticker-id", sticker.id);
       card.setAttribute("role", "button");
       card.setAttribute("tabindex", "0");
 
       const displaySrc = isAnimatedMode ? sticker.animWebpUrl : sticker.webpUrl;
       card.innerHTML = `
         <div class="sticker-checkerboard">
+          <button type="button" class="fav-star-badge ${isFav ? "is-fav" : ""}" title="${isFav ? "Remove from Favorites" : "Add to Favorites"}">★</button>
           <img src="${displaySrc}" alt="${sticker.name}" loading="lazy" onerror="this.src='${sticker.webpUrl}'" />
-          <span class="quick-send-badge" title="Selected">${isSelected ? SVG_CHECK : SVG_PLUS}</span>
-          <span class="style-tag-mini">${isAnimatedMode ? "⚡ ANIM" : sticker.style === "3d" ? "3D" : "SLANG"}</span>
+          <span class="quick-send-badge" title="1-Tap Quick Send / Copy">${isSelected ? SVG_CHECK : SVG_PLUS}</span>
+          <span class="style-tag-mini">${isAnimatedMode ? "⚡ 3D" : "3D"}</span>
         </div>
         <div class="sticker-meta">
           <div class="sticker-label">${sticker.name}</div>
-          ${sticker.meaning ? `<div class="sticker-meaning-short" title="${sticker.meaning}">${sticker.meaning}</div>` : ""}
+          ${showMainMeanings && sticker.meaning ? `<div class="sticker-meaning-short" title="${sticker.meaning}">${sticker.meaning}</div>` : ""}
         </div>
       `;
 
+      const favBtn = card.querySelector(".fav-star-badge");
+      favBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idx = favoriteIds.indexOf(sticker.id);
+        if (idx >= 0) {
+          favoriteIds.splice(idx, 1);
+          showToast(`Removed "${sticker.name}" from ⭐ Favorites`);
+        } else {
+          favoriteIds.unshift(sticker.id);
+          showToast(`Added "${sticker.name}" to ⭐ Favorites!`);
+        }
+        saveFavorites();
+        renderPackRail();
+        renderStickerGrid();
+      });
+
+      const quickBadge = card.querySelector(".quick-send-badge");
+      quickBadge?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        updateSelectedSticker(sticker, false);
+        directShareSticker(sticker);
+      });
+
       card.addEventListener("click", () => {
-        updateSelectedSticker(sticker, true);
+        updateSelectedSticker(sticker, false);
       });
 
       stickerGrid.appendChild(card);
     });
   }
 
-  // Update Selected Sticker Inspector (No Description Text or Fake Chat)
-  function updateSelectedSticker(sticker, scrollToPreview) {
+  // Update Selected Sticker Inspector in Sticky Quick-Peel Dock (Zero Scroll Trap!)
+  function updateSelectedSticker(sticker) {
     selectedSticker = sticker;
 
     document.querySelectorAll(".sticker-card").forEach((el) => {
-      const label = el.querySelector(".sticker-label")?.textContent;
-      const isMatch = label === sticker.name;
+      const idAttr = el.getAttribute("data-sticker-id");
+      const isMatch = idAttr ? idAttr === sticker.id : el.querySelector(".sticker-label")?.textContent === sticker.name;
       el.classList.toggle("selected", isMatch);
       const badge = el.querySelector(".quick-send-badge");
       if (badge) badge.innerHTML = isMatch ? SVG_CHECK : SVG_PLUS;
     });
 
+    const packTagEl = document.getElementById("selectedStickerPackTag");
+    if (packTagEl) {
+      packTagEl.textContent = sticker.packName ? sticker.packName.toUpperCase() : "SELECTED 3D STICKER";
+    }
     if (liveChatStickerTitle) {
       liveChatStickerTitle.textContent = sticker.name;
     }
     if (selectedStickerFormatBadge) {
-      const styleLabel = sticker.style === "3d" ? "3D Emoji" : "Die-Cut Slang Sticker";
-      selectedStickerFormatBadge.textContent = isAnimatedMode
-        ? `${styleLabel} • Animated GIF & WebP + PNG`
-        : `${styleLabel} • 512×512 PNG & WebP`;
+      selectedStickerFormatBadge.textContent = sticker.meaning
+        ? `"${sticker.meaning}"`
+        : isAnimatedMode
+        ? "Animated GIF & WebP + 512px PNG"
+        : "512×512 PNG & WebP";
     }
     if (chatPreviewStickerImg) {
       chatPreviewStickerImg.src = isAnimatedMode ? sticker.animWebpUrl : sticker.webpUrl;
       chatPreviewStickerImg.alt = sticker.name;
     }
+  }
 
-    if (scrollToPreview && window.innerWidth < 640) {
-      const inspectorCard = document.getElementById("liveChatSection");
-      if (inspectorCard) {
-        inspectorCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  // Procedural Web Audio + Speech Cadence Slang Preview ("Hear De Slang" 🔊)
+  function playSlangAudio(sticker) {
+    if (!sticker) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        const sid = sticker.id.toLowerCase();
+
+        if (sid.includes("steups")) {
+          // Iconic Trini teeth-sucking high-frequency filter sweep
+          const bufferSize = ctx.sampleRate * 0.48;
+          const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+          const noise = ctx.createBufferSource();
+          noise.buffer = buffer;
+          const filter = ctx.createBiquadFilter();
+          filter.type = "bandpass";
+          filter.frequency.setValueAtTime(3400, now);
+          filter.frequency.exponentialRampToValueAtTime(1200, now + 0.45);
+          filter.Q.value = 9;
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.01, now);
+          gain.gain.linearRampToValueAtTime(0.35, now + 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.46);
+          noise.connect(filter).connect(gain).connect(ctx.destination);
+          noise.start(now);
+        } else if (sid.includes("weyyyy") || sid.includes("carnival") || sid.includes("moko") || sid.includes("tassa")) {
+          // Soca / Hype dual-horn + bass thump
+          [440, 554.37, 659.25].forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(freq, now + i * 0.05);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.12, now + 0.38);
+            g.gain.setValueAtTime(0.12, now + i * 0.05);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+            osc.connect(g).connect(ctx.destination);
+            osc.start(now + i * 0.05);
+            osc.stop(now + 0.44);
+          });
+        } else {
+          // Tropical Steelpan fifths chime
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(freq, now + i * 0.06);
+            g.gain.setValueAtTime(0.18, now + i * 0.06);
+            g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.28);
+            osc.connect(g).connect(ctx.destination);
+            osc.start(now + i * 0.06);
+            osc.stop(now + i * 0.06 + 0.3);
+          });
+        }
       }
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(sticker.name.replace(/[!?.]/g, ""));
+        utter.rate = 1.02;
+        utter.pitch = 1.08;
+        window.speechSynthesis.speak(utter);
+      }
+      showToast(`🔊 Playing: "${sticker.name}"`);
+    } catch (_) {
+      showToast(`🔊 "${sticker.name}"`);
     }
   }
 
@@ -367,6 +531,7 @@
   // Copy Transparent Sticker to Clipboard (or Share Animated GIF when Animated Mode is ON)
   async function copyStickerToClipboard(sticker) {
     if (!sticker) return;
+    recordRecentSticker(sticker.id);
     if (isAnimatedMode) {
       showToast(`Opening Share Sheet for Animated GIF (Clipboards only support static PNG)`);
       await directShareSticker(sticker);
@@ -393,6 +558,7 @@
   // Native Mobile Share Sheet (Always uses 2.16s Looping GIF in Animated Mode so WhatsApp/IG/iMessage animate it!)
   async function directShareSticker(sticker) {
     if (!sticker) return;
+    recordRecentSticker(sticker.id);
     try {
       const useWebp = activePlatform === "whatsapp" || activePlatform === "telegram";
       let fileUrl = sticker.pngUrl;
@@ -467,10 +633,11 @@
     showToast(`Downloading "${pack.name}" (${pack.stickers.length} Stickers .ZIP)`);
   }
 
-  // Custom Caption Stamp Studio (View 2 — 100% Local HTML5 Canvas)
+  // Custom Caption Stamp Studio 2.0 (View 2 — 100% Local HTML5 Canvas + Visual 3D Strip)
   function initCaptionStudio() {
     const canvas = document.getElementById("customStickerCanvas");
     const baseSelect = document.getElementById("studioBaseSelect");
+    const thumbRail = document.getElementById("studioThumbRail");
     const topInput = document.getElementById("studioTopTextInput");
     const bottomInput = document.getElementById("studioBottomTextInput");
     const accentSelect = document.getElementById("studioAccentSelect");
@@ -485,11 +652,47 @@
       opt.value = s.id;
       opt.textContent = s.num
         ? `${s.name} (Trini Slang #${s.num})`
-        : `${s.name} (Pack ${s.packNumber})`;
+        : `${s.name} (${s.packName || "3D Culture"})`;
       baseSelect.appendChild(opt);
+
+      if (thumbRail) {
+        const tbtn = document.createElement("button");
+        tbtn.type = "button";
+        tbtn.className = "studio-thumb-btn";
+        tbtn.setAttribute("data-studio-id", s.id);
+        tbtn.title = s.name;
+        tbtn.innerHTML = `<img src="${s.webpUrl}" alt="${s.name}" loading="lazy" />`;
+        tbtn.addEventListener("click", () => {
+          baseSelect.value = s.id;
+          renderStudioCanvas();
+        });
+        thumbRail.appendChild(tbtn);
+      }
     });
 
     const combinedStudioPool = allStickers;
+
+    function syncStudioThumbs() {
+      if (!thumbRail) return;
+      thumbRail.querySelectorAll(".studio-thumb-btn").forEach((b) => {
+        b.classList.toggle("active", b.getAttribute("data-studio-id") === baseSelect.value);
+      });
+    }
+
+    openStickerInStudioFn = (sticker) => {
+      if (!sticker) return;
+      baseSelect.value = sticker.id;
+      if (bottomInput) bottomInput.value = sticker.name.toUpperCase().slice(0, 24);
+      renderStudioCanvas();
+      document.querySelectorAll(".nav-tab-btn").forEach((t) => {
+        t.classList.toggle("active", t.getAttribute("data-nav-target") === "view-captions");
+      });
+      document.querySelectorAll(".view-panel").forEach((panel) => {
+        panel.classList.toggle("active", panel.id === "view-captions");
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      showToast(`Loaded "${sticker.name}" in Stamp Studio 2.0!`);
+    };
 
     function drawRoundedRect(c, x, y, w, h, r) {
       c.beginPath();
@@ -502,6 +705,7 @@
     }
 
     function renderStudioCanvas() {
+      syncStudioThumbs();
       const st = combinedStudioPool.find((s) => s.id === baseSelect.value) || combinedStudioPool[0];
       const topText = (topInput.value || "").trim().toUpperCase();
       const botText = (bottomInput.value || "").trim().toUpperCase();
@@ -1011,6 +1215,23 @@
 
     copyStickerClipboardBtn?.addEventListener("click", () => copyStickerToClipboard(selectedSticker));
     directSendSocialBtn?.addEventListener("click", () => directShareSticker(selectedSticker));
+    document.getElementById("hearSlangAudioBtn")?.addEventListener("click", () => playSlangAudio(selectedSticker));
+    document.getElementById("remixInStudioBtn")?.addEventListener("click", () => {
+      if (openStickerInStudioFn && selectedSticker) openStickerInStudioFn(selectedSticker);
+    });
+    document.getElementById("toggleDockMoreBtn")?.addEventListener("click", () => {
+      const subrow = document.getElementById("dockFormatSubrow");
+      if (subrow) {
+        const isHidden = subrow.style.display === "none";
+        subrow.style.display = isHidden ? "grid" : "none";
+      }
+    });
+    document.getElementById("toggleMainMeaningsBtn")?.addEventListener("click", () => {
+      showMainMeanings = !showMainMeanings;
+      const lbl = document.getElementById("toggleMainMeaningsLabel");
+      if (lbl) lbl.textContent = `Meanings: ${showMainMeanings ? "ON" : "OFF"}`;
+      renderStickerGrid();
+    });
     downloadAnimGifBtn?.addEventListener("click", () => {
       if (!selectedSticker) return;
       downloadFileUrl(selectedSticker.animGifUrl, `${selectedSticker.id}-animated.gif`);

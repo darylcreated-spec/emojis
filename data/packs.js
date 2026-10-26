@@ -234,9 +234,33 @@ window.STICKERBOOM_PACKS = [
         chatSender: "Daryl",
         chatIncoming: "Allyuh roasting meh whole haircut in de group chat boy!",
         chatReplyContext: "Playful Trini banter",
-        style: "sticker",
+        style: "3d",
         emojis: ["😜", "🔥", "🤝"],
         accent: "#F59E0B"
+      },
+      {
+        id: "crapaud-pipe",
+        name: "CRAPAUD SMOKE YUH PIPE",
+        variations: "Yuh in trouble now • Done for",
+        meaning: "Classic Trini proverb meaning 'You are in serious trouble now / Your goose is cooked!'",
+        chatSender: "Uncle Trevor",
+        chatIncoming: "Wait till yuh mother find out who dent de bumper on she car!",
+        chatReplyContext: "Inevitable trouble ahead",
+        style: "3d",
+        emojis: ["🐸", "💨", "👀"],
+        accent: "#00E5FF"
+      },
+      {
+        id: "trini-chow",
+        name: "MANGO & POMERAC CHOW",
+        variations: "Pepper Chow • Chadon Beni & Lime",
+        meaning: "Mouthwatering Trini fruit chow seasoned with Scotch bonnet pepper, garlic, culantro (chadon beni), salt, and lime.",
+        chatSender: "Tasha",
+        chatIncoming: "We cutting Julie mango and pomerac for beach lime!",
+        chatReplyContext: "Spicy Trini chow craving",
+        style: "3d",
+        emojis: ["🥭", "🌶️", "🍋‍🟩"],
+        accent: "#FFB800"
       }
     ]
   },
