@@ -158,12 +158,14 @@
     const filtered = getFilteredStickers();
     stickerGrid.innerHTML = "";
 
-    if (searchQuery) {
-      gridTitle.textContent = `Results for "${searchQuery}"`;
-    } else {
-      gridTitle.textContent = "Tap Any Sticker to Copy or Send";
+    if (gridTitle) {
+      gridTitle.textContent = searchQuery
+        ? `Results for "${searchQuery}"`
+        : "Tap Any Sticker to Copy or Send";
     }
-    gridCount.textContent = `${filtered.length} stickers`;
+    if (gridCount) {
+      gridCount.textContent = `${filtered.length} stickers`;
+    }
 
     if (filtered.length === 0) {
       const empty = document.createElement("div");
@@ -994,13 +996,13 @@
     });
   }
 
-  // Initialize App
+  // Initialize App (Splash dismissal first so UI never blocks)
+  initIconModal();
   renderPackRail();
   renderActivePackHeader();
   renderStickerGrid();
   if (selectedSticker) updateSelectedSticker(selectedSticker, false);
   initTriniSlangSection();
   initCaptionStudio();
-  initIconModal();
   bindEvents();
 })();
