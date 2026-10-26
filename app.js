@@ -6,12 +6,60 @@
   const icons = window.STICKERBOOM_ICONS || [];
   const triniSlangList = window.STICKERBOOM_TRINI_SLANG || [];
 
+  // Only include 100% pure wordless 3D pictorial stickers (ZERO circular sunburst badges or text-overlay stickers)
+  const PURE_3D_CULTURE_IDS = new Set([
+    "steups",
+    "ah-eh-able",
+    "weyyyy",
+    "doh-tote",
+    "killing-me-dead",
+    "rel-bess",
+    "chupidee",
+    "freshwater-yankee",
+    "just-picong",
+    "doubles-3d",
+    "slight-pepper",
+    "bake-and-shark",
+    "crab-and-dumpling",
+    "hang-jack",
+    "stress-free-liming",
+    "sou-sou-drop",
+    "steelpan-3d",
+    "carnival-mas-3d",
+    "soucouyant",
+    "parang-season",
+    "deya-parsad",
+    "maxi-taxi"
+  ]);
+
   // Enrich all 88 Trini Slang items with Animated WebP & GIF URLs
   triniSlangList.forEach((item) => {
-    item.webpUrl = `assets/stickers/${item.id}.webp?v=4`;
-    item.pngUrl = `assets/stickers/${item.id}.png?v=4`;
-    item.animWebpUrl = `assets/animated/${item.id}.webp?v=4`;
-    item.animGifUrl = `assets/animated/${item.id}.gif?v=4`;
+    item.webpUrl = `assets/stickers/${item.id}.webp?v=5`;
+    item.pngUrl = `assets/stickers/${item.id}.png?v=5`;
+    item.animWebpUrl = `assets/animated/${item.id}.webp?v=5`;
+    item.animGifUrl = `assets/animated/${item.id}.gif?v=5`;
+    item.style = "3d";
+  });
+
+  // Extract the 22 pure wordless 3D Cultural, Food & Slang icons
+  const pureCultureStickers = [];
+  basePacks.forEach((pack) => {
+    pack.stickers.forEach((s) => {
+      if (PURE_3D_CULTURE_IDS.has(s.id)) {
+        pureCultureStickers.push({
+          ...s,
+          style: "3d",
+          isCulture: true,
+          packId: "trini-culture-3d",
+          packNumber: pack.number,
+          packName: "Trini Food, Mas & Culture",
+          webpUrl: `assets/stickers/${s.id}.webp?v=5`,
+          pngUrl: `assets/stickers/${s.id}.png?v=5`,
+          animWebpUrl: `assets/animated/${s.id}.webp?v=5`,
+          animGifUrl: `assets/animated/${s.id}.gif?v=5`
+        });
+      }
+    });
   });
 
   // Group 88 Trini Slang items into unified category packs
@@ -28,71 +76,55 @@
     const items = triniSlangList.filter((i) => i.category === cat);
     return {
       id: `slang-cat-${idx + 1}`,
-      number: basePacks.length + idx + 2,
+      number: idx + 1,
       name: `Trini Slang: ${cat}`,
       shortName: cat,
-      badge: "TRINI SLANG",
+      badge: "3D PICTORIAL SLANG",
       badgeColor: "#FF2A5F",
       zipUrl: "assets/packs/trini-slang-all-88.zip",
       stickers: items
     };
   });
 
-  // Flatten all 98 base pack stickers + all 88 Trini Slang items = 186 total unified stickers
-  const allStickers = [];
-  basePacks.forEach((pack) => {
-    pack.stickers.forEach((s) => {
-      allStickers.push({
-        ...s,
-        packId: pack.id,
-        packNumber: pack.number,
-        packName: pack.name,
-        webpUrl: `assets/stickers/${s.id}.webp?v=4`,
-        pngUrl: `assets/stickers/${s.id}.png?v=4`,
-        animWebpUrl: `assets/animated/${s.id}.webp?v=4`,
-        animGifUrl: `assets/animated/${s.id}.gif?v=4`
-      });
-    });
-  });
-
-  triniSlangList.forEach((item) => {
-    allStickers.push({
+  // Combine all 110 pure wordless 3D pictorial stickers (22 Culture/Revamped + 88 Slang Pictorials)
+  const allStickers = [
+    ...pureCultureStickers,
+    ...triniSlangList.map((item) => ({
       ...item,
       packId: `slang-cat-${SLANG_CATEGORIES.indexOf(item.category) + 1}`,
       packNumber: `S#${item.num}`,
       packName: `Trini Slang • ${item.category}`
-    });
-  });
+    }))
+  ];
 
-  // Build Unified Pack Rail (All 186 + 8 Packs + Slang All 88 + 6 Slang Categories)
+  // Build Unified 3D Pack Rail (All 110 Pure 3D + Food/Mas/Culture + 6 Slang Categories)
   const packs = [
     {
-      id: "all-trini-186",
+      id: "all-trini-3d",
       number: 0,
-      name: "All Trini Slang & Cultural Stickers (186)",
-      shortName: "All Trini",
-      badge: "ALL 186 STICKERS",
+      name: "All Trini Slang & Culture 3D Pictorials (110)",
+      shortName: "All Trini 3D",
+      badge: "100% WORDLESS 3D PICTORIAL",
       badgeColor: "#FF2A5F",
       zipUrl: "assets/packs/trini-slang-all-88.zip",
       stickers: allStickers
     },
-    ...basePacks,
     {
-      id: "trini-slang-all-88",
-      number: basePacks.length + 1,
-      name: "Trini Slang Pictorials (88 Icons)",
-      shortName: "Slang Pictorials",
-      badge: "88 PICTORIAL SLANG",
-      badgeColor: "#00E5FF",
-      zipUrl: "assets/packs/trini-slang-all-88.zip",
-      stickers: triniSlangList
+      id: "trini-culture-3d",
+      number: 1,
+      name: "Trini Food, Mas, Folklore & Vibes (22)",
+      shortName: "Food, Mas & Vibes",
+      badge: "3D CULTURE & VIBES",
+      badgeColor: "#FFB800",
+      zipUrl: "assets/packs/pack-1-social-slang.zip",
+      stickers: pureCultureStickers
     },
     ...slangCategoryPacks
   ];
 
   // State
-  let activePackId = "all-trini-186";
-  let activeStyleFilter = "all"; // 'all' | '3d' | 'sticker'
+  let activePackId = "all-trini-3d";
+  let activeStyleFilter = "all"; // 'all' | 'culture'
   let activePlatform = "all"; // 'all' | 'instagram' | 'imessage' | 'telegram' | 'discord' | 'whatsapp'
   let isAnimatedMode = true; // Live animated WebP/GIF mode ON by default
   let searchQuery = "";
@@ -201,7 +233,9 @@
       ? activePack.stickers.map((s) => allStickers.find((a) => a.id === s.id) || s)
       : allStickers;
 
-    if (activeStyleFilter !== "all") {
+    if (activeStyleFilter === "culture") {
+      pool = pool.filter((s) => s.isCulture);
+    } else if (activeStyleFilter !== "all") {
       pool = pool.filter((s) => s.style === activeStyleFilter);
     }
 
