@@ -249,6 +249,17 @@ html, body {
   border-color: var(--peel-cyan);
 }
 
+.icon-action-btn.anim-toggle-active {
+  border-color: var(--peel-gold);
+  background: rgba(255, 184, 0, 0.14);
+  color: var(--peel-gold);
+  box-shadow: 0 0 12px rgba(255, 184, 0, 0.22);
+}
+
+.icon-action-btn.anim-toggle-active svg {
+  color: var(--peel-gold);
+}
+
 /* Segmented Style Switcher Pill with Icons */
 .segmented-control {
   display: grid;
@@ -878,6 +889,12 @@ html, body {
 .btn-micro-action:active {
   border-color: var(--peel-gold);
   background: rgba(255, 184, 0, 0.15);
+}
+
+.btn-micro-anim {
+  border-color: rgba(255, 184, 0, 0.35);
+  background: rgba(255, 184, 0, 0.10);
+  color: #FFFFFF;
 }
 
 /* Caption Studio & Custom Builder View */

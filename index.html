@@ -26,7 +26,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=peeloff-v2" />
+  <link rel="stylesheet" href="styles.css?v=peeloff-v3" />
 </head>
 <body>
   <!-- PeelOff Launch Splash Screen -->
@@ -53,6 +53,10 @@
           </div>
         </div>
         <div class="header-actions">
+          <button id="toggleAnimatedBtn" class="icon-action-btn anim-toggle-active" title="Toggle Live Animated Stickers (WebP + GIF)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span id="toggleAnimatedLabel">Animated: ON</span>
+          </button>
           <button id="shareAppBtn" class="icon-action-btn" title="Share PeelOff">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
             <span>Share</span>
@@ -189,17 +193,21 @@
           </button>
         </div>
 
-        <!-- Secondary Format Downloads for All Platforms -->
-        <div class="social-export-subrow">
-          <button id="downloadPngBtn" class="btn-micro-action" title="Download 512x512 Transparent PNG">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>512px PNG</span>
+        <!-- Secondary Format Downloads for All Platforms (Animated GIF + Animated WebP + PNG + Discord) -->
+        <div class="social-export-subrow" style="grid-template-columns: repeat(2, 1fr);">
+          <button id="downloadAnimGifBtn" class="btn-micro-action btn-micro-anim" title="Download 512x512 Looping Transparent GIF (iMessage, IG, TikTok, Discord, X)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Animated GIF</span>
           </button>
-          <button id="downloadWebpBtn" class="btn-micro-action" title="Download 512x512 WebP (<100KB)">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>512px WebP</span>
+          <button id="downloadAnimWebpBtn" class="btn-micro-action btn-micro-anim" title="Download 512x512 Animated WebP (<500KB for WhatsApp & Telegram)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Animated WebP</span>
           </button>
-          <button id="downloadDiscordBtn" class="btn-micro-action" title="Download 128x128 PNG for Discord & Slack">
+          <button id="downloadPngBtn" class="btn-micro-action" title="Download 512x512 Static Transparent PNG">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Static PNG</span>
+          </button>
+          <button id="downloadDiscordBtn" class="btn-micro-action" title="Download 128x128 for Discord & Slack">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>128px Discord</span>
           </button>
@@ -291,17 +299,21 @@
           </button>
         </div>
 
-        <!-- Secondary Format Downloads for All Platforms -->
-        <div class="social-export-subrow">
-          <button id="downloadSlangPngBtn" class="btn-micro-action" title="Download 512x512 Transparent PNG">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>512px PNG</span>
+        <!-- Secondary Format Downloads for All Platforms (Animated GIF + Animated WebP + PNG + Discord) -->
+        <div class="social-export-subrow" style="grid-template-columns: repeat(2, 1fr);">
+          <button id="downloadSlangAnimGifBtn" class="btn-micro-action btn-micro-anim" title="Download 512x512 Looping Transparent GIF (iMessage, IG, TikTok, Discord, X)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Animated GIF</span>
           </button>
-          <button id="downloadSlangWebpBtn" class="btn-micro-action" title="Download 512x512 WebP (<100KB)">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>512px WebP</span>
+          <button id="downloadSlangAnimWebpBtn" class="btn-micro-action btn-micro-anim" title="Download 512x512 Animated WebP (<500KB for WhatsApp & Telegram)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Animated WebP</span>
           </button>
-          <button id="downloadSlangDiscordBtn" class="btn-micro-action" title="Download 128x128 PNG for Discord & Slack">
+          <button id="downloadSlangPngBtn" class="btn-micro-action" title="Download 512x512 Static Transparent PNG">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Static PNG</span>
+          </button>
+          <button id="downloadSlangDiscordBtn" class="btn-micro-action" title="Download 128x128 for Discord & Slack">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>128px Discord</span>
           </button>
@@ -453,8 +465,8 @@
     </div>
   </nav>
 
-  <script src="data/packs.js?v=peeloff-v2"></script>
-  <script src="data/trini-slang.js?v=peeloff-v2"></script>
-  <script src="app.js?v=peeloff-v2"></script>
+  <script src="data/packs.js?v=peeloff-v3"></script>
+  <script src="data/trini-slang.js?v=peeloff-v3"></script>
+  <script src="app.js?v=peeloff-v3"></script>
 </body>
 </html>

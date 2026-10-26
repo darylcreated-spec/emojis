@@ -6,7 +6,7 @@
   const icons = window.STICKERBOOM_ICONS || [];
   const triniSlangList = window.STICKERBOOM_TRINI_SLANG || [];
 
-  // Flatten all 98 stickers with pack reference
+  // Flatten all 98 stickers with pack reference + Animated WebP & GIF URLs
   const allStickers = [];
   packs.forEach((pack) => {
     pack.stickers.forEach((s) => {
@@ -16,18 +16,28 @@
         packNumber: pack.number,
         packName: pack.name,
         webpUrl: `assets/stickers/${s.id}.webp`,
-        pngUrl: `assets/stickers/${s.id}.png`
+        pngUrl: `assets/stickers/${s.id}.png`,
+        animWebpUrl: `assets/animated/${s.id}.webp`,
+        animGifUrl: `assets/animated/${s.id}.gif`
       });
     });
+  });
+
+  // Enrich all 88 Trini Slang items with Animated WebP & GIF URLs
+  triniSlangList.forEach((item) => {
+    item.animWebpUrl = `assets/animated/${item.id}.webp`;
+    item.animGifUrl = `assets/animated/${item.id}.gif`;
   });
 
   // State
   let activePackId = packs[0]?.id || "pack-1-social-slang";
   let activeStyleFilter = "all"; // 'all' | '3d' | 'sticker'
   let activePlatform = "all"; // 'all' | 'instagram' | 'imessage' | 'telegram' | 'discord' | 'whatsapp'
+  let isAnimatedMode = true; // Live animated WebP/GIF mode ON by default
   let searchQuery = "";
   let selectedSticker = allStickers[0] || null;
   let activeIconId = "icon-1";
+  let refreshSlangViewFn = null;
 
   // DOM Elements
   const packRail = document.getElementById("packRail");
@@ -41,6 +51,8 @@
   const slangSearchInput = document.getElementById("slangSearchInput");
   const clearSearchBtn = document.getElementById("clearSearchBtn");
   const downloadPackBtnLabel = document.getElementById("downloadPackBtnLabel");
+  const toggleAnimatedBtn = document.getElementById("toggleAnimatedBtn");
+  const toggleAnimatedLabel = document.getElementById("toggleAnimatedLabel");
 
   // Selected Sticker Inspector Elements
   const liveChatStickerTitle = document.getElementById("liveChatStickerTitle");
@@ -50,7 +62,8 @@
   // Action Buttons
   const copyStickerClipboardBtn = document.getElementById("copyStickerClipboardBtn");
   const directSendSocialBtn = document.getElementById("directSendSocialBtn");
-  const downloadWebpBtn = document.getElementById("downloadWebpBtn");
+  const downloadAnimGifBtn = document.getElementById("downloadAnimGifBtn");
+  const downloadAnimWebpBtn = document.getElementById("downloadAnimWebpBtn");
   const downloadPngBtn = document.getElementById("downloadPngBtn");
   const downloadDiscordBtn = document.getElementById("downloadDiscordBtn");
   const downloadPackBtn = document.getElementById("downloadPackBtn");
@@ -174,11 +187,12 @@
       card.setAttribute("role", "button");
       card.setAttribute("tabindex", "0");
 
+      const displaySrc = isAnimatedMode ? sticker.animWebpUrl : sticker.webpUrl;
       card.innerHTML = `
         <div class="sticker-checkerboard">
-          <img src="${sticker.webpUrl}" alt="${sticker.name}" loading="lazy" onerror="this.src='${sticker.pngUrl}'" />
+          <img src="${displaySrc}" alt="${sticker.name}" loading="lazy" onerror="this.src='${sticker.webpUrl}'" />
           <span class="quick-send-badge" title="Selected">${isSelected ? SVG_CHECK : SVG_PLUS}</span>
-          <span class="style-tag-mini">${sticker.style === "3d" ? "3D" : "SLANG"}</span>
+          <span class="style-tag-mini">${isAnimatedMode ? "⚡ ANIM" : sticker.style === "3d" ? "3D" : "SLANG"}</span>
         </div>
         <div class="sticker-meta">
           <div class="sticker-label">${sticker.name}</div>
@@ -210,10 +224,12 @@
     }
     if (selectedStickerFormatBadge) {
       const styleLabel = sticker.style === "3d" ? "3D Emoji" : "Die-Cut Slang Sticker";
-      selectedStickerFormatBadge.textContent = `${styleLabel} • 512×512 PNG & WebP`;
+      selectedStickerFormatBadge.textContent = isAnimatedMode
+        ? `${styleLabel} • Animated GIF & WebP + PNG`
+        : `${styleLabel} • 512×512 PNG & WebP`;
     }
     if (chatPreviewStickerImg) {
-      chatPreviewStickerImg.src = sticker.webpUrl;
+      chatPreviewStickerImg.src = isAnimatedMode ? sticker.animWebpUrl : sticker.webpUrl;
       chatPreviewStickerImg.alt = sticker.name;
     }
 
@@ -267,14 +283,30 @@
     }
   }
 
-  // Native Mobile Share Sheet (Sends ONLY the image file, zero description text)
+  // Native Mobile Share Sheet (Supports Animated GIF / Animated WebP + Static PNG/WebP)
   async function directShareSticker(sticker) {
     if (!sticker) return;
     try {
       const useWebp = activePlatform === "whatsapp" || activePlatform === "telegram";
-      const fileUrl = useWebp ? sticker.webpUrl : sticker.pngUrl;
-      const ext = useWebp ? "webp" : "png";
-      const mime = useWebp ? "image/webp" : "image/png";
+      let fileUrl = sticker.pngUrl;
+      let ext = "png";
+      let mime = "image/png";
+
+      if (isAnimatedMode) {
+        if (useWebp) {
+          fileUrl = sticker.animWebpUrl;
+          ext = "webp";
+          mime = "image/webp";
+        } else {
+          fileUrl = sticker.animGifUrl;
+          ext = "gif";
+          mime = "image/gif";
+        }
+      } else if (useWebp) {
+        fileUrl = sticker.webpUrl;
+        ext = "webp";
+        mime = "image/webp";
+      }
 
       const response = await fetch(fileUrl);
       const blob = await response.blob();
@@ -284,7 +316,7 @@
         await navigator.share({
           files: [file]
         });
-        showToast(`Sent "${sticker.name}"!`);
+        showToast(`Sent "${sticker.name}" (${ext.toUpperCase()})!`);
         return;
       }
     } catch (err) {
@@ -292,7 +324,15 @@
     }
 
     // Fallback: Download exact platform image format
-    if (activePlatform === "whatsapp" || activePlatform === "telegram") {
+    if (isAnimatedMode) {
+      if (activePlatform === "whatsapp" || activePlatform === "telegram") {
+        downloadFileUrl(sticker.animWebpUrl, `${sticker.id}-animated.webp`);
+        showToast(`Saved "${sticker.name}" Animated WebP!`);
+      } else {
+        downloadFileUrl(sticker.animGifUrl, `${sticker.id}-animated.gif`);
+        showToast(`Saved "${sticker.name}" Animated GIF!`);
+      }
+    } else if (activePlatform === "whatsapp" || activePlatform === "telegram") {
       downloadFileUrl(sticker.webpUrl, `${sticker.id}.webp`);
       showToast(`Saved "${sticker.name}" 512×512 WebP!`);
     } else if (activePlatform === "discord") {
@@ -548,8 +588,9 @@
     // Inspector Export Buttons
     const copyBtn = document.getElementById("copySlangClipboardBtn");
     const sendBtn = document.getElementById("directSendSlangBtn");
+    const animGifBtn = document.getElementById("downloadSlangAnimGifBtn");
+    const animWebpBtn = document.getElementById("downloadSlangAnimWebpBtn");
     const pngBtn = document.getElementById("downloadSlangPngBtn");
-    const webpBtn = document.getElementById("downloadSlangWebpBtn");
     const discordBtn = document.getElementById("downloadSlangDiscordBtn");
 
     if (!grid || !catRail || triniSlangList.length === 0) return;
@@ -604,7 +645,7 @@
       });
 
       if (previewImg) {
-        previewImg.src = item.webpUrl;
+        previewImg.src = isAnimatedMode ? item.animWebpUrl : item.webpUrl;
         previewImg.alt = item.name;
       }
       if (metaTag) {
@@ -688,11 +729,12 @@
         card.setAttribute("role", "button");
         card.setAttribute("tabindex", "0");
 
+        const slangDisplaySrc = isAnimatedMode ? item.animWebpUrl : item.webpUrl;
         card.innerHTML = `
           <div class="sticker-checkerboard">
-            <img src="${item.webpUrl}" alt="${item.name}" loading="lazy" onerror="this.src='${item.pngUrl}'" />
+            <img src="${slangDisplaySrc}" alt="${item.name}" loading="lazy" onerror="this.src='${item.webpUrl}'" />
             <span class="quick-send-badge" title="Selected">${isSelected ? SVG_CHECK : SVG_PLUS}</span>
-            <span class="style-tag-mini">#${item.num}</span>
+            <span class="style-tag-mini">${isAnimatedMode ? "⚡ #" + item.num : "#" + item.num}</span>
           </div>
           <div class="sticker-meta">
             <div class="sticker-label">${item.name}</div>
@@ -748,22 +790,37 @@
 
     copyBtn?.addEventListener("click", () => copyStickerToClipboard(selectedSlang));
     sendBtn?.addEventListener("click", () => directShareSticker(selectedSlang));
+    animGifBtn?.addEventListener("click", () => {
+      if (!selectedSlang) return;
+      downloadFileUrl(selectedSlang.animGifUrl, `${selectedSlang.id}-animated.gif`);
+      showToast(`Downloaded "${selectedSlang.name}" Animated GIF!`);
+    });
+    animWebpBtn?.addEventListener("click", () => {
+      if (!selectedSlang) return;
+      downloadFileUrl(selectedSlang.animWebpUrl, `${selectedSlang.id}-animated.webp`);
+      showToast(`Downloaded "${selectedSlang.name}" Animated WebP!`);
+    });
     pngBtn?.addEventListener("click", () => {
       if (!selectedSlang) return;
       downloadFileUrl(selectedSlang.pngUrl, `${selectedSlang.id}.png`);
       showToast(`Downloaded "${selectedSlang.name}" 512×512 PNG!`);
     });
-    webpBtn?.addEventListener("click", () => {
-      if (!selectedSlang) return;
-      downloadFileUrl(selectedSlang.webpUrl, `${selectedSlang.id}.webp`);
-      showToast(`Downloaded "${selectedSlang.name}" 512×512 WebP!`);
-    });
     discordBtn?.addEventListener("click", async () => {
       if (!selectedSlang) return;
+      if (isAnimatedMode) {
+        downloadFileUrl(selectedSlang.animGifUrl, `${selectedSlang.id}-discord.gif`);
+        showToast(`Downloaded "${selectedSlang.name}" Animated Discord GIF!`);
+        return;
+      }
       const blob = await fetchStickerPngBlob(selectedSlang, 128);
       triggerBlobDownload(blob, `${selectedSlang.id}-discord-128px.png`);
       showToast(`Downloaded "${selectedSlang.name}" 128×128 Discord PNG!`);
     });
+
+    refreshSlangViewFn = () => {
+      renderSlangGrid();
+      if (selectedSlang) updateSelectedSlang(selectedSlang, false);
+    };
 
     renderSlangCategoryRail();
     renderSlangGrid();
@@ -849,10 +906,15 @@
 
     copyStickerClipboardBtn?.addEventListener("click", () => copyStickerToClipboard(selectedSticker));
     directSendSocialBtn?.addEventListener("click", () => directShareSticker(selectedSticker));
-    downloadWebpBtn?.addEventListener("click", () => {
+    downloadAnimGifBtn?.addEventListener("click", () => {
       if (!selectedSticker) return;
-      downloadFileUrl(selectedSticker.webpUrl, `${selectedSticker.id}.webp`);
-      showToast(`Downloaded "${selectedSticker.name}" 512×512 WebP!`);
+      downloadFileUrl(selectedSticker.animGifUrl, `${selectedSticker.id}-animated.gif`);
+      showToast(`Downloaded "${selectedSticker.name}" Animated GIF!`);
+    });
+    downloadAnimWebpBtn?.addEventListener("click", () => {
+      if (!selectedSticker) return;
+      downloadFileUrl(selectedSticker.animWebpUrl, `${selectedSticker.id}-animated.webp`);
+      showToast(`Downloaded "${selectedSticker.name}" Animated WebP!`);
     });
     downloadPngBtn?.addEventListener("click", () => {
       if (!selectedSticker) return;
@@ -861,9 +923,30 @@
     });
     downloadDiscordBtn?.addEventListener("click", async () => {
       if (!selectedSticker) return;
+      if (isAnimatedMode) {
+        downloadFileUrl(selectedSticker.animGifUrl, `${selectedSticker.id}-discord.gif`);
+        showToast(`Downloaded "${selectedSticker.name}" Animated Discord GIF!`);
+        return;
+      }
       const blob = await fetchStickerPngBlob(selectedSticker, 128);
       triggerBlobDownload(blob, `${selectedSticker.id}-discord-128px.png`);
       showToast(`Downloaded "${selectedSticker.name}" 128×128 Discord PNG!`);
+    });
+
+    toggleAnimatedBtn?.addEventListener("click", () => {
+      isAnimatedMode = !isAnimatedMode;
+      toggleAnimatedBtn.classList.toggle("anim-toggle-active", isAnimatedMode);
+      if (toggleAnimatedLabel) {
+        toggleAnimatedLabel.textContent = `Animated: ${isAnimatedMode ? "ON" : "OFF"}`;
+      }
+      renderStickerGrid();
+      if (selectedSticker) updateSelectedSticker(selectedSticker, false);
+      if (refreshSlangViewFn) refreshSlangViewFn();
+      showToast(
+        isAnimatedMode
+          ? "⚡ Animated Mode ON (Looping WebP & GIF)"
+          : "Static Mode ON (512px PNG & WebP)"
+      );
     });
 
     downloadPackBtn?.addEventListener("click", exportActivePack);
