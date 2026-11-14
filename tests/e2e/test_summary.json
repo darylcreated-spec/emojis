@@ -1,0 +1,1174 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2026-11-14T19:19:02Z",
+  "strict_mode": false,
+  "filter_tier": null,
+  "filter_feature": null,
+  "summary": {
+    "total": 117,
+    "passed": 117,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 10.343,
+    "status": "PASSED",
+    "exit_code": 0
+  },
+  "by_tier": {
+    "tier_1": {
+      "total": 50,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 4.231
+    },
+    "tier_2": {
+      "total": 50,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 2.529
+    },
+    "tier_3": {
+      "total": 12,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 1.714
+    },
+    "tier_4": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 1.865
+    }
+  },
+  "by_feature": {
+    "F1": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.077
+    },
+    "F2": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.009
+    },
+    "F3": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.001
+    },
+    "F4": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.247
+    },
+    "F5": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.046
+    },
+    "F6": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 5.364
+    },
+    "F7": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.057
+    },
+    "F8": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.018
+    },
+    "F9": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.416
+    },
+    "F10": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 0.524
+    }
+  },
+  "failures": [],
+  "tests": [
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F10AdversarialCoverageHardening.test_f10_01_corrupted_webp_rejection",
+      "tier": 1,
+      "feature": "F10",
+      "description": "TC-T1-F10-01: Verify parser rejects corrupted or truncated WebP bytes.",
+      "status": "PASS",
+      "duration_seconds": 0.0026,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F10AdversarialCoverageHardening.test_f10_02_corrupted_gif_rejection",
+      "tier": 1,
+      "feature": "F10",
+      "description": "TC-T1-F10-02: Verify parser rejects corrupted or truncated GIF bytes.",
+      "status": "PASS",
+      "duration_seconds": 0.0012,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F10AdversarialCoverageHardening.test_f10_03_path_traversal_sanitization",
+      "tier": 1,
+      "feature": "F10",
+      "description": "TC-T1-F10-03: Verify path resolution rejects or bounds path traversal sequences.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F10AdversarialCoverageHardening.test_f10_04_generator_invalid_cli_arguments",
+      "tier": 1,
+      "feature": "F10",
+      "description": "TC-T1-F10-04: Verify generator handles invalid arguments safely.",
+      "status": "PASS",
+      "duration_seconds": 0.1634,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F10AdversarialCoverageHardening.test_f10_05_extreme_dimensions_or_empty_inputs",
+      "tier": 1,
+      "feature": "F10",
+      "description": "TC-T1-F10-05: Verify safe_open_image rejects empty or non-existent files.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F1CulturalReferenceGuide.test_f1_01_spec_file_exists",
+      "tier": 1,
+      "feature": "F1",
+      "description": "TC-T1-F1-01: Verify CULTURAL_ANIMATION_SPEC.md exists and is non-empty.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F1CulturalReferenceGuide.test_f1_02_emotional_registers_coverage",
+      "tier": 1,
+      "feature": "F1",
+      "description": "TC-T1-F1-02: Verify documentation of authentic Trini emotional registers.",
+      "status": "PASS",
+      "duration_seconds": 0.0015,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F1CulturalReferenceGuide.test_f1_03_exhaustive_188_sticker_matrix",
+      "tier": 1,
+      "feature": "F1",
+      "description": "TC-T1-F1-03: Verify cultural matrix maps all 188 sticker IDs.",
+      "status": "PASS",
+      "duration_seconds": 0.0621,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F1CulturalReferenceGuide.test_f1_04_authentic_motion_primitives_specification",
+      "tier": 1,
+      "feature": "F1",
+      "description": "TC-T1-F1-04: Verify specification documents 12+ authentic motion routines.",
+      "status": "PASS",
+      "duration_seconds": 0.0015,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F1CulturalReferenceGuide.test_f1_05_matrix_column_schema",
+      "tier": 1,
+      "feature": "F1",
+      "description": "TC-T1-F1-05: Verify master matrix defines required structural columns.",
+      "status": "PASS",
+      "duration_seconds": 0.0042,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F2AuthenticMotionPrimitives.test_f2_01_soca_rag_windmill_motion",
+      "tier": 1,
+      "feature": "F2",
+      "description": "TC-T1-F2-01: Verify soca rag windmill / wave motion primitive exists.",
+      "status": "PASS",
+      "duration_seconds": 0.0004,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F2AuthenticMotionPrimitives.test_f2_02_steups_recoil_motion",
+      "tier": 1,
+      "feature": "F2",
+      "description": "TC-T1-F2-02: Verify steups recoil / acoustic air puff motion primitive exists.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F2AuthenticMotionPrimitives.test_f2_03_doubles_lean_motion",
+      "tier": 1,
+      "feature": "F2",
+      "description": "TC-T1-F2-03: Verify 45\u00b0 doubles lean motion primitive exists.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F2AuthenticMotionPrimitives.test_f2_04_allfours_slam_motion",
+      "tier": 1,
+      "feature": "F2",
+      "description": "TC-T1-F2-04: Verify all-fours table slam / shockwave motion routine exists.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F2AuthenticMotionPrimitives.test_f2_05_tanty_akumbo_motion",
+      "tier": 1,
+      "feature": "F2",
+      "description": "TC-T1-F2-05: Verify tanty akumbo / stern mom motion routine exists.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F3IndividualizedRigMapping.test_f3_01_zero_generic_fallback",
+      "tier": 1,
+      "feature": "F3",
+      "description": "TC-T1-F3-01: Verify articulated_gesture generic fallback is eliminated.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F3IndividualizedRigMapping.test_f3_02_cultural_pack_rig_coverage",
+      "tier": 1,
+      "feature": "F3",
+      "description": "TC-T1-F3-02: Verify rigs cover cultural pack themes.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F3IndividualizedRigMapping.test_f3_03_trini_slang_rig_coverage",
+      "tier": 1,
+      "feature": "F3",
+      "description": "TC-T1-F3-03: Verify rigs cover Trini slang catalog.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F3IndividualizedRigMapping.test_f3_04_folklore_rig_specialization",
+      "tier": 1,
+      "feature": "F3",
+      "description": "TC-T1-F3-04: Verify specialized folklore character rigs exist in generator.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F3IndividualizedRigMapping.test_f3_05_food_and_belly_rig_dynamics",
+      "tier": 1,
+      "feature": "F3",
+      "description": "TC-T1-F3-05: Verify culinary food items have specialized rigs.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F4MicroMotionHoldAndFrames.test_f4_01_universal_24_frames_webp",
+      "tier": 1,
+      "feature": "F4",
+      "description": "TC-T1-F4-01: Verify non-empty WebP animations have 24 frames.",
+      "status": "PASS",
+      "duration_seconds": 0.0908,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F4MicroMotionHoldAndFrames.test_f4_02_universal_24_frames_gif",
+      "tier": 1,
+      "feature": "F4",
+      "description": "TC-T1-F4-02: Verify non-empty GIF animations have 24 frames.",
+      "status": "PASS",
+      "duration_seconds": 0.1282,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F4MicroMotionHoldAndFrames.test_f4_03_per_frame_duration_90ms",
+      "tier": 1,
+      "feature": "F4",
+      "description": "TC-T1-F4-03: Verify frame duration is 90ms nominal via binary parsers.",
+      "status": "PASS",
+      "duration_seconds": 0.0007,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F4MicroMotionHoldAndFrames.test_f4_04_total_loop_duration_2160ms",
+      "tier": 1,
+      "feature": "F4",
+      "description": "TC-T1-F4-04: Verify total loop duration is 2160ms (satisfying WhatsApp >= 2.0s).",
+      "status": "PASS",
+      "duration_seconds": 0.001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F4MicroMotionHoldAndFrames.test_f4_05_previously_coalesced_stickers_resolved",
+      "tier": 1,
+      "feature": "F4",
+      "description": "TC-T1-F4-05: Verify previously coalesced stickers (slang-link-me, bullseye-allfours) have 24 frames.",
+      "status": "PASS",
+      "duration_seconds": 0.0005,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F5ProductionAssetGeneration.test_f5_01_all_376_files_exist",
+      "tier": 1,
+      "feature": "F5",
+      "description": "TC-T1-F5-01: Verify all 188 .webp and 188 .gif exist (total 376 files).",
+      "status": "PASS",
+      "duration_seconds": 0.0025,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F5ProductionAssetGeneration.test_f5_02_zero_byte_file_detection",
+      "tier": 1,
+      "feature": "F5",
+      "description": "TC-T1-F5-02: Assert zero 0-byte files exist in assets/animated/.",
+      "status": "PASS",
+      "duration_seconds": 0.0028,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F5ProductionAssetGeneration.test_f5_03_canvas_dimension_512x512",
+      "tier": 1,
+      "feature": "F5",
+      "description": "TC-T1-F5-03: Verify canvas dimensions are exactly 512x512 pixels.",
+      "status": "PASS",
+      "duration_seconds": 0.024,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F5ProductionAssetGeneration.test_f5_04_webp_riff_vp8x_header_and_alpha",
+      "tier": 1,
+      "feature": "F5",
+      "description": "TC-T1-F5-04: Verify WebP header integrity and alpha transparency flag.",
+      "status": "PASS",
+      "duration_seconds": 0.0004,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F5ProductionAssetGeneration.test_f5_05_gif_header_and_studio_card_palette",
+      "tier": 1,
+      "feature": "F5",
+      "description": "TC-T1-F5-05: Verify GIF header is GIF89a and studio card background is #10141E.",
+      "status": "PASS",
+      "duration_seconds": 0.0022,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F6AutomatedAnimationVerifier.test_f6_01_verifier_script_exists",
+      "tier": 1,
+      "feature": "F6",
+      "description": "TC-T1-F6-01: Verify scripts/verify_animated_stickers.py exists.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F6AutomatedAnimationVerifier.test_f6_02_verifier_clean_run",
+      "tier": 1,
+      "feature": "F6",
+      "description": "TC-T1-F6-02: Verify verifier script executes with exit code 0.",
+      "status": "PASS",
+      "duration_seconds": 1.7058,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F6AutomatedAnimationVerifier.test_f6_03_verifier_defect_detection_zero_byte",
+      "tier": 1,
+      "feature": "F6",
+      "description": "TC-T1-F6-03: Verify verifier detects 0-byte corrupt assets.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F6AutomatedAnimationVerifier.test_f6_04_verifier_defect_detection_frame_drop",
+      "tier": 1,
+      "feature": "F6",
+      "description": "TC-T1-F6-04: Verify verifier checks for minimum 24 frames.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F6AutomatedAnimationVerifier.test_f6_05_verifier_output_schema_and_duration",
+      "tier": 1,
+      "feature": "F6",
+      "description": "TC-T1-F6-05: Verify verifier outputs diagnostic statistics within runtime budget.",
+      "status": "PASS",
+      "duration_seconds": 1.7949,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F7WebAppAnimatedIntegration.test_f7_01_app_js_syntax_valid",
+      "tier": 1,
+      "feature": "F7",
+      "description": "TC-T1-F7-01: Verify app.js contains valid JavaScript syntax.",
+      "status": "PASS",
+      "duration_seconds": 0.0483,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F7WebAppAnimatedIntegration.test_f7_02_index_html_dom_elements",
+      "tier": 1,
+      "feature": "F7",
+      "description": "TC-T1-F7-02: Verify index.html contains required UI controls and tabs.",
+      "status": "PASS",
+      "duration_seconds": 0.0003,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F7WebAppAnimatedIntegration.test_f7_03_cache_busting_version_v9",
+      "tier": 1,
+      "feature": "F7",
+      "description": "TC-T1-F7-03: Verify app.js uses cache-busting query parameter ?v=9.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F7WebAppAnimatedIntegration.test_f7_04_image_fallback_error_handler",
+      "tier": 1,
+      "feature": "F7",
+      "description": "TC-T1-F7-04: Verify image tags include onerror fallback handler.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F7WebAppAnimatedIntegration.test_f7_05_share_sheet_gif_routing",
+      "tier": 1,
+      "feature": "F7",
+      "description": "TC-T1-F7-05: Verify animated mode routes looping GIF to share sheet.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F8WhatsAppManifestAlignment.test_f8_01_contents_json_valid_syntax",
+      "tier": 1,
+      "feature": "F8",
+      "description": "TC-T1-F8-01: Verify assets/contents.json has valid JSON schema.",
+      "status": "PASS",
+      "duration_seconds": 0.0005,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F8WhatsAppManifestAlignment.test_f8_02_animated_sticker_pack_flag",
+      "tier": 1,
+      "feature": "F8",
+      "description": "TC-T1-F8-02: Verify animated_sticker_pack is set to true for animated packs.",
+      "status": "PASS",
+      "duration_seconds": 0.0003,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F8WhatsAppManifestAlignment.test_f8_03_pack_count_and_tray_icons",
+      "tier": 1,
+      "feature": "F8",
+      "description": "TC-T1-F8-03: Verify 8 packs and valid 96x96 tray icon files < 50KB.",
+      "status": "PASS",
+      "duration_seconds": 0.0109,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F8WhatsAppManifestAlignment.test_f8_04_manifest_stickers_exist_on_disk",
+      "tier": 1,
+      "feature": "F8",
+      "description": "TC-T1-F8-04: Verify all stickers in manifest exist in assets/stickers/ and assets/animated/.",
+      "status": "PASS",
+      "duration_seconds": 0.0021,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F8WhatsAppManifestAlignment.test_f8_05_pack_sticker_bounds",
+      "tier": 1,
+      "feature": "F8",
+      "description": "TC-T1-F8-05: Verify each pack contains between 3 and 30 stickers (WhatsApp constraint).",
+      "status": "PASS",
+      "duration_seconds": 0.0003,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F9ComprehensiveE2ETestSuite.test_f9_01_runner_cli_execution",
+      "tier": 1,
+      "feature": "F9",
+      "description": "TC-T1-F9-01: Verify runner CLI responds to --help.",
+      "status": "PASS",
+      "duration_seconds": 0.1565,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F9ComprehensiveE2ETestSuite.test_f9_02_runner_discovers_all_tiers",
+      "tier": 1,
+      "feature": "F9",
+      "description": "TC-T1-F9-02: Verify test suites for Tiers 1 through 4 are present in tests/e2e/.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F9ComprehensiveE2ETestSuite.test_f9_03_runner_total_tests_threshold",
+      "tier": 1,
+      "feature": "F9",
+      "description": "TC-T1-F9-03: Verify total test cases across tiers meet or exceed 115 threshold.",
+      "status": "PASS",
+      "duration_seconds": 0.0045,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F9ComprehensiveE2ETestSuite.test_f9_04_runner_json_summary_output",
+      "tier": 1,
+      "feature": "F9",
+      "description": "TC-T1-F9-04: Verify runner generates valid test_summary.json schema.",
+      "status": "PASS",
+      "duration_seconds": 0.0141,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier1_feature_coverage.TestTier1F9ComprehensiveE2ETestSuite.test_f9_05_progressive_skip_handling",
+      "tier": 1,
+      "feature": "F9",
+      "description": "TC-T1-F9-05: Verify require_milestone raises SkipTest in default progressive mode.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F10AdversarialCoverageHardeningBoundaries.test_t2_f10_01_concurrency_workers_1_boundary",
+      "tier": 2,
+      "feature": "F10",
+      "description": "TC-T2-F10-01: Concurrency lower boundary: 1 worker is valid in CLI and thread execution.",
+      "status": "PASS",
+      "duration_seconds": 0.1702,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F10AdversarialCoverageHardeningBoundaries.test_t2_f10_02_concurrency_workers_16_boundary",
+      "tier": 2,
+      "feature": "F10",
+      "description": "TC-T2-F10-02: Concurrency upper boundary: 16 workers execute safely without Windows locking crashes.",
+      "status": "PASS",
+      "duration_seconds": 0.1774,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F10AdversarialCoverageHardeningBoundaries.test_t2_f10_03_zero_byte_input_png_rejection",
+      "tier": 2,
+      "feature": "F10",
+      "description": "TC-T2-F10-03: Corner check: 0-byte PNG rejected by safe_open_image.",
+      "status": "PASS",
+      "duration_seconds": 0.0007,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F10AdversarialCoverageHardeningBoundaries.test_t2_f10_04_minimal_1x1_png_scaling",
+      "tier": 2,
+      "feature": "F10",
+      "description": "TC-T2-F10-04: Corner check: 1x1 image scaled through prep_breathing_room without division by zero.",
+      "status": "PASS",
+      "duration_seconds": 0.0021,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F10AdversarialCoverageHardeningBoundaries.test_t2_f10_05_fully_transparent_input_png",
+      "tier": 2,
+      "feature": "F10",
+      "description": "TC-T2-F10-05: Corner check: 100% transparent image handled cleanly.",
+      "status": "PASS",
+      "duration_seconds": 0.0066,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F1CulturalGuideBoundaries.test_t2_f1_01_exact_188_entries_boundary",
+      "tier": 2,
+      "feature": "F1",
+      "description": "TC-T2-F1-01: Boundary check for exactly 188 unique stickers in matrix.",
+      "status": "PASS",
+      "duration_seconds": 0.0051,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F1CulturalGuideBoundaries.test_t2_f1_02_slang_string_length_extremes",
+      "tier": 2,
+      "feature": "F1",
+      "description": "TC-T2-F1-02: Boundary check for shortest and longest slang identifiers.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F1CulturalGuideBoundaries.test_t2_f1_03_special_character_and_punctuation_preservation",
+      "tier": 2,
+      "feature": "F1",
+      "description": "TC-T2-F1-03: Boundary check for punctuation ('?!', '-', ''') in slang terms.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F1CulturalGuideBoundaries.test_t2_f1_04_zero_empty_emotional_register_fields",
+      "tier": 2,
+      "feature": "F1",
+      "description": "TC-T2-F1-04: Corner check for zero placeholder tokens (TODO, TBD, FIXME) in spec and catalog.",
+      "status": "PASS",
+      "duration_seconds": 0.0027,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F1CulturalGuideBoundaries.test_t2_f1_05_cultural_categories_boundary_and_completeness",
+      "tier": 2,
+      "feature": "F1",
+      "description": "TC-T2-F1-05: Boundary check for strict 6 canonical slang categories and partition bounds.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F2MotionPrimitivesBoundaries.test_t2_f2_01_temporal_cycle_boundary_t0_vs_t1",
+      "tier": 2,
+      "feature": "F2",
+      "description": "TC-T2-F2-01: Loop continuity boundary: motion curves at t=0.0 vs t=1.0.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F2MotionPrimitivesBoundaries.test_t2_f2_02_canvas_bounding_box_clipping",
+      "tier": 2,
+      "feature": "F2",
+      "description": "TC-T2-F2-02: Geometric boundary: test prep_breathing_room creates >= 20px safety margins on 512x512.",
+      "status": "PASS",
+      "duration_seconds": 0.0079,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F2MotionPrimitivesBoundaries.test_t2_f2_03_micro_motion_hold_non_zero_delta",
+      "tier": 2,
+      "feature": "F2",
+      "description": "TC-T2-F2-03: Boundary check for non-zero displacement during comic hold interval in comic_pop_curve.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F2MotionPrimitivesBoundaries.test_t2_f2_04_overshoot_factor_extreme_bounds",
+      "tier": 2,
+      "feature": "F2",
+      "description": "TC-T2-F2-04: Boundary check for ease_out_back overshoot factor s=1.70158.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F2MotionPrimitivesBoundaries.test_t2_f2_05_squash_and_stretch_displacement_bounds",
+      "tier": 2,
+      "feature": "F2",
+      "description": "TC-T2-F2-05: Boundary check for volume-preserving squash_stretch_offset clamping in [0.65, 1.45].",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F3IndividualizedRigMappingBoundaries.test_t2_f3_01_catalog_disjointness_and_root_disambiguation",
+      "tier": 2,
+      "feature": "F3",
+      "description": "TC-T2-F3-01: Disjointness and rig disambiguation between pack stickers and slang stickers.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F3IndividualizedRigMappingBoundaries.test_t2_f3_02_catalog_id_kebab_case_normalization",
+      "tier": 2,
+      "feature": "F3",
+      "description": "TC-T2-F3-02: Normalization boundary: all 188 catalog IDs strictly match lower-kebab format.",
+      "status": "PASS",
+      "duration_seconds": 0.0004,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F3IndividualizedRigMappingBoundaries.test_t2_f3_03_rig_classifier_tolerance_to_unnormalized_input",
+      "tier": 2,
+      "feature": "F3",
+      "description": "TC-T2-F3-03: Boundary check: classify_rig gracefully handles uppercase and trimmed IDs.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F3IndividualizedRigMappingBoundaries.test_t2_f3_04_unknown_id_and_boundary_fallback",
+      "tier": 2,
+      "feature": "F3",
+      "description": "TC-T2-F3-04: Corner check: classify_rig safely handles empty, non-existent, and oversized inputs.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F3IndividualizedRigMappingBoundaries.test_t2_f3_05_generic_fallback_count_strict_zero",
+      "tier": 2,
+      "feature": "F3",
+      "description": "TC-T2-F3-05: Strict boundary: articulated_gesture count must be 0 across all 188 stickers after M2.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F4MicroMotionHoldAndFramesBoundaries.test_t2_f4_01_frame_count_lower_boundary_23_rejected",
+      "tier": 2,
+      "feature": "F4",
+      "description": "TC-T2-F4-01: Boundary check: an animation with 23 frames fails the 24 frame contract.",
+      "status": "PASS",
+      "duration_seconds": 0.0133,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F4MicroMotionHoldAndFramesBoundaries.test_t2_f4_02_frame_count_upper_boundary_25_rejected",
+      "tier": 2,
+      "feature": "F4",
+      "description": "TC-T2-F4-02: Boundary check: an animation with 25 frames fails the 24 frame contract.",
+      "status": "PASS",
+      "duration_seconds": 0.0092,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F4MicroMotionHoldAndFramesBoundaries.test_t2_f4_03_duration_boundary_min_2000ms_max_2200ms",
+      "tier": 2,
+      "feature": "F4",
+      "description": "TC-T2-F4-03: Boundary check: total animation duration in [2000, 2200] ms on actual assets.",
+      "status": "PASS",
+      "duration_seconds": 0.0011,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F4MicroMotionHoldAndFramesBoundaries.test_t2_f4_04_frame_duration_tolerance_89_to_91ms",
+      "tier": 2,
+      "feature": "F4",
+      "description": "TC-T2-F4-04: Boundary check: actual frame durations in ANMF chunks strictly within [89, 91] ms.",
+      "status": "PASS",
+      "duration_seconds": 0.0012,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F4MicroMotionHoldAndFramesBoundaries.test_t2_f4_05_loop_header_flag_exact_zero",
+      "tier": 2,
+      "feature": "F4",
+      "description": "TC-T2-F4-05: Boundary check: infinite loop flag is strictly 0 (0x0000) for WebP and GIF.",
+      "status": "PASS",
+      "duration_seconds": 0.0009,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F5ProductionAssetGenerationBoundaries.test_t2_f5_01_min_and_max_file_size_boundaries",
+      "tier": 2,
+      "feature": "F5",
+      "description": "TC-T2-F5-01: File size boundaries: valid assets must be > 10KB and <= 2.5MB.",
+      "status": "PASS",
+      "duration_seconds": 0.0054,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F5ProductionAssetGenerationBoundaries.test_t2_f5_02_max_quantized_palette_128_colors",
+      "tier": 2,
+      "feature": "F5",
+      "description": "TC-T2-F5-02: Palette boundary: GIF color table length is in [2, 128] colors.",
+      "status": "PASS",
+      "duration_seconds": 0.0008,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F5ProductionAssetGenerationBoundaries.test_t2_f5_03_studio_card_bg_pixel_exact_rgb",
+      "tier": 2,
+      "feature": "F5",
+      "description": "TC-T2-F5-03: Color fidelity boundary: GIF card outer pixels are (16, 20, 30) +/- 4.",
+      "status": "PASS",
+      "duration_seconds": 0.0016,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F5ProductionAssetGenerationBoundaries.test_t2_f5_04_webp_corner_pixel_complete_alpha_zero",
+      "tier": 2,
+      "feature": "F5",
+      "description": "TC-T2-F5-04: Alpha boundary: WebP all 4 corners have alpha == 0, center has alpha > 0.",
+      "status": "PASS",
+      "duration_seconds": 0.0052,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F5ProductionAssetGenerationBoundaries.test_t2_f5_05_canvas_exact_512x512_no_off_by_one",
+      "tier": 2,
+      "feature": "F5",
+      "description": "TC-T2-F5-05: Canvas boundary: verify width and height are strictly 512 across WebP and GIF.",
+      "status": "PASS",
+      "duration_seconds": 0.0013,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F6AutomatedAnimationVerifierBoundaries.test_t2_f6_01_empty_directory_input_boundary",
+      "tier": 2,
+      "feature": "F6",
+      "description": "TC-T2-F6-01: Boundary check: empty directory handling in verification logic.",
+      "status": "PASS",
+      "duration_seconds": 0.112,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F6AutomatedAnimationVerifierBoundaries.test_t2_f6_02_single_corrupt_asset_detection",
+      "tier": 2,
+      "feature": "F6",
+      "description": "TC-T2-F6-02: Boundary check: single corrupt asset among valid assets is caught.",
+      "status": "PASS",
+      "duration_seconds": 0.0482,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F6AutomatedAnimationVerifierBoundaries.test_t2_f6_03_non_image_file_handling",
+      "tier": 2,
+      "feature": "F6",
+      "description": "TC-T2-F6-03: Corner check: extraneous non-image files (.txt, .DS_Store) ignored.",
+      "status": "PASS",
+      "duration_seconds": 0.0032,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F6AutomatedAnimationVerifierBoundaries.test_t2_f6_04_magic_byte_corruption_rejection",
+      "tier": 2,
+      "feature": "F6",
+      "description": "TC-T2-F6-04: Corner check: text file renamed to .webp is rejected.",
+      "status": "PASS",
+      "duration_seconds": 0.002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F6AutomatedAnimationVerifierBoundaries.test_t2_f6_05_verifier_runtime_budget_boundary",
+      "tier": 2,
+      "feature": "F6",
+      "description": "TC-T2-F6-05: Performance boundary: verifier script path verification and execution timing.",
+      "status": "PASS",
+      "duration_seconds": 1.6981,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F7WebAppAnimatedIntegrationBoundaries.test_t2_f7_01_rapid_consecutive_toggle_invariance",
+      "tier": 2,
+      "feature": "F7",
+      "description": "TC-T2-F7-01: State invariance boundary: 10 toggles restores initial state in app.js logic.",
+      "status": "PASS",
+      "duration_seconds": 0.0006,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F7WebAppAnimatedIntegrationBoundaries.test_t2_f7_02_missing_asset_onerror_fallback_src",
+      "tier": 2,
+      "feature": "F7",
+      "description": "TC-T2-F7-02: Fallback boundary: onerror constructs correct static WebP URL matching disk files.",
+      "status": "PASS",
+      "duration_seconds": 0.0004,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F7WebAppAnimatedIntegrationBoundaries.test_t2_f7_03_empty_search_query_boundary",
+      "tier": 2,
+      "feature": "F7",
+      "description": "TC-T2-F7-03: Boundary check: empty search string matches all 188 stickers.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F7WebAppAnimatedIntegrationBoundaries.test_t2_f7_04_non_matching_search_query_boundary",
+      "tier": 2,
+      "feature": "F7",
+      "description": "TC-T2-F7-04: Boundary check: unmatched search string returns empty list.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F7WebAppAnimatedIntegrationBoundaries.test_t2_f7_05_desktop_share_fallback_to_download",
+      "tier": 2,
+      "feature": "F7",
+      "description": "TC-T2-F7-05: Fallback boundary: download fallback URL for animated GIF matches real assets.",
+      "status": "PASS",
+      "duration_seconds": 0.0066,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F8WhatsAppManifestAlignmentBoundaries.test_t2_f8_01_pack_sticker_count_max_boundary_30",
+      "tier": 2,
+      "feature": "F8",
+      "description": "TC-T2-F8-01: Upper boundary check: no pack has > 30 stickers.",
+      "status": "PASS",
+      "duration_seconds": 0.0004,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F8WhatsAppManifestAlignmentBoundaries.test_t2_f8_02_pack_sticker_count_min_boundary_3",
+      "tier": 2,
+      "feature": "F8",
+      "description": "TC-T2-F8-02: Lower boundary check: no pack has < 3 stickers.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F8WhatsAppManifestAlignmentBoundaries.test_t2_f8_03_emojis_per_sticker_boundary_1_to_3",
+      "tier": 2,
+      "feature": "F8",
+      "description": "TC-T2-F8-03: Boundary check: each sticker defines between 1 and 3 emojis.",
+      "status": "PASS",
+      "duration_seconds": 0.0003,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F8WhatsAppManifestAlignmentBoundaries.test_t2_f8_04_tray_icon_file_size_boundary_50kb",
+      "tier": 2,
+      "feature": "F8",
+      "description": "TC-T2-F8-04: Size boundary: tray icon file size < 50,000 bytes and 96x96 pixels.",
+      "status": "PASS",
+      "duration_seconds": 0.0031,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F8WhatsAppManifestAlignmentBoundaries.test_t2_f8_05_pack_identifier_uniqueness",
+      "tier": 2,
+      "feature": "F8",
+      "description": "TC-T2-F8-05: Uniqueness boundary: exactly 8 unique pack identifiers matching regex spec.",
+      "status": "PASS",
+      "duration_seconds": 0.0003,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F9ComprehensiveE2ETestSuiteBoundaries.test_t2_f9_01_zero_unhandled_exceptions_runner",
+      "tier": 2,
+      "feature": "F9",
+      "description": "TC-T2-F9-01: Corner check: runner script parses without uncaught syntax errors.",
+      "status": "PASS",
+      "duration_seconds": 0.09,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F9ComprehensiveE2ETestSuiteBoundaries.test_t2_f9_02_invalid_tier_argument_rejection",
+      "tier": 2,
+      "feature": "F9",
+      "description": "TC-T2-F9-02: Boundary check: invalid tier argument --tier 99 exits code 2.",
+      "status": "PASS",
+      "duration_seconds": 0.1479,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F9ComprehensiveE2ETestSuiteBoundaries.test_t2_f9_03_progressive_mode_exit_zero_on_skips",
+      "tier": 2,
+      "feature": "F9",
+      "description": "TC-T2-F9-03: Boundary check: skip in progressive mode raises unittest.SkipTest.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F9ComprehensiveE2ETestSuiteBoundaries.test_t2_f9_04_strict_mode_exit_one_on_skips",
+      "tier": 2,
+      "feature": "F9",
+      "description": "TC-T2-F9-04: Boundary check: strict mode raises AssertionError on uncompleted milestone.",
+      "status": "PASS",
+      "duration_seconds": 0.0001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier2_boundary_corner.TestTier2F9ComprehensiveE2ETestSuiteBoundaries.test_t2_f9_05_suite_runtime_boundary_60s",
+      "tier": 2,
+      "feature": "F9",
+      "description": "TC-T2-F9-05: Performance boundary: test discovery and individual tests execute in < 5.0s, suite < 60s.",
+      "status": "PASS",
+      "duration_seconds": 0.0021,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f1_matrix_to_f3_rig_classifier",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-02: F1 <-> F3: Spec matrix sticker IDs match catalog definitions.",
+      "status": "PASS",
+      "duration_seconds": 0.0048,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f1_spec_to_f2_generator_routines",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-01: F1 <-> F2: Motion primitives documented in spec exist in generator code.",
+      "status": "PASS",
+      "duration_seconds": 0.002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f2_motion_curves_to_f4_24_frames",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-03: F2 <-> F4: Procedural curves evaluated over 24 frames produce smooth continuity.",
+      "status": "PASS",
+      "duration_seconds": 0.0007,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f3_catalog_to_f8_manifest_alignment",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-12: F3 <-> F8: Pack 1 sticker count alignment between packs.js and contents.json.",
+      "status": "PASS",
+      "duration_seconds": 0.0005,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f3_rigs_to_f5_visual_distinction",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-04: F3 <-> F5: Different rigs produce distinct animation signatures.",
+      "status": "PASS",
+      "duration_seconds": 0.0112,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f4_standardization_to_f5_asset_metadata",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-05: F4 <-> F5: 24 frames @ 90ms standard is reflected in asset binary metadata.",
+      "status": "PASS",
+      "duration_seconds": 0.0062,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f5_assets_to_f6_verifier_acceptance",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-06: F5 <-> F6: Generated assets are verified by animation verifier.",
+      "status": "PASS",
+      "duration_seconds": 1.6852,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f5_assets_to_f7_webapp_urls",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-07: F5 <-> F7: URLs constructed in app.js point to existing disk assets.",
+      "status": "PASS",
+      "duration_seconds": 0.0003,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f6_verifier_to_f9_test_runner",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-09: F6 <-> F9: Animation verifier assertions are tested in E2E harness.",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f7_toggle_to_f10_fallback_resilience",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-10: F7 <-> F10: Web app image fallback prevents UI failure under missing asset.",
+      "status": "PASS",
+      "duration_seconds": 0.0002,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f7_webapp_to_f8_manifest_stickers",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-08: F7 <-> F8: Web app pack identifiers align with WhatsApp manifest.",
+      "status": "PASS",
+      "duration_seconds": 0.0003,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier3_cross_feature.TestTier3CrossFeatureInteractions.test_pairwise_f8_animated_flag_to_f5_webp_validity",
+      "tier": 3,
+      "feature": "Cross",
+      "description": "TC-T3-11: F8 <-> F5: Manifest animated packs reference valid WebP assets.",
+      "status": "PASS",
+      "duration_seconds": 0.0025,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier4_real_world.TestTier4RealWorldScenarios.test_scenario_01_asset_build_to_verify_pipeline",
+      "tier": 4,
+      "feature": "RealWorld",
+      "description": "TC-T4-01: Full developer / CI asset pipeline execution & verification simulation.",
+      "status": "PASS",
+      "duration_seconds": 1.8523,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier4_real_world.TestTier4RealWorldScenarios.test_scenario_02_user_browsing_and_toggle_workflow",
+      "tier": 4,
+      "feature": "RealWorld",
+      "description": "TC-T4-02: End-to-end web app user journey (explore, toggle, search, preview, share).",
+      "status": "PASS",
+      "duration_seconds": 0.0005,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier4_real_world.TestTier4RealWorldScenarios.test_scenario_03_slang_catalog_exploration_and_sharing",
+      "tier": 4,
+      "feature": "RealWorld",
+      "description": "TC-T4-03: Slang catalog exploration, filtering, and cross-platform sharing workflow.",
+      "status": "PASS",
+      "duration_seconds": 0.001,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier4_real_world.TestTier4RealWorldScenarios.test_scenario_04_whatsapp_multipack_import_simulation",
+      "tier": 4,
+      "feature": "RealWorld",
+      "description": "TC-T4-04: WhatsApp multi-pack import parsing and asset constraint validation.",
+      "status": "PASS",
+      "duration_seconds": 0.0005,
+      "message": ""
+    },
+    {
+      "test_id": "tests.e2e.test_tier4_real_world.TestTier4RealWorldScenarios.test_scenario_05_defect_quarantine_and_recovery",
+      "tier": 4,
+      "feature": "RealWorld",
+      "description": "TC-T4-05: Defect detection in quarantine sandbox and recovery verification.",
+      "status": "PASS",
+      "duration_seconds": 0.0107,
+      "message": ""
+    }
+  ]
+}

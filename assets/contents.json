@@ -13,7 +13,7 @@
       "license_agreement_website": "https://peeloff.vercel.app",
       "image_data_version": "3",
       "avoid_cache": false,
-      "animated_sticker_pack": false,
+      "animated_sticker_pack": true,
       "stickers": [
         {
           "image_file": "ent.webp",
@@ -142,6 +142,22 @@
             "🔥",
             "🤝"
           ]
+        },
+        {
+          "image_file": "crapaud-pipe.webp",
+          "emojis": [
+            "🐸",
+            "💨",
+            "👀"
+          ]
+        },
+        {
+          "image_file": "trini-chow.webp",
+          "emojis": [
+            "🥭",
+            "🌶️",
+            "🍋‍🟩"
+          ]
         }
       ]
     },
@@ -156,7 +172,7 @@
       "license_agreement_website": "https://peeloff.vercel.app",
       "image_data_version": "3",
       "avoid_cache": false,
-      "animated_sticker_pack": false,
+      "animated_sticker_pack": true,
       "stickers": [
         {
           "image_file": "maco.webp",
@@ -267,7 +283,7 @@
       "license_agreement_website": "https://peeloff.vercel.app",
       "image_data_version": "3",
       "avoid_cache": false,
-      "animated_sticker_pack": false,
+      "animated_sticker_pack": true,
       "stickers": [
         {
           "image_file": "doubles-3d.webp",
@@ -378,7 +394,7 @@
       "license_agreement_website": "https://peeloff.vercel.app",
       "image_data_version": "3",
       "avoid_cache": false,
-      "animated_sticker_pack": false,
+      "animated_sticker_pack": true,
       "stickers": [
         {
           "image_file": "hang-jack.webp",
@@ -489,7 +505,7 @@
       "license_agreement_website": "https://peeloff.vercel.app",
       "image_data_version": "3",
       "avoid_cache": false,
-      "animated_sticker_pack": false,
+      "animated_sticker_pack": true,
       "stickers": [
         {
           "image_file": "steelpan-3d.webp",
@@ -600,7 +616,7 @@
       "license_agreement_website": "https://peeloff.vercel.app",
       "image_data_version": "3",
       "avoid_cache": false,
-      "animated_sticker_pack": false,
+      "animated_sticker_pack": true,
       "stickers": [
         {
           "image_file": "soucouyant.webp",
@@ -695,7 +711,7 @@
       "license_agreement_website": "https://peeloff.vercel.app",
       "image_data_version": "3",
       "avoid_cache": false,
-      "animated_sticker_pack": false,
+      "animated_sticker_pack": true,
       "stickers": [
         {
           "image_file": "parang-vibes.webp",
@@ -806,7 +822,7 @@
       "license_agreement_website": "https://peeloff.vercel.app",
       "image_data_version": "3",
       "avoid_cache": false,
-      "animated_sticker_pack": false,
+      "animated_sticker_pack": true,
       "stickers": [
         {
           "image_file": "crab-and-dumpling.webp",

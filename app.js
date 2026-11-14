@@ -52,10 +52,10 @@
 
   // Enrich all 88 Trini Slang items with Animated WebP & GIF URLs
   triniSlangList.forEach((item) => {
-    item.webpUrl = `assets/stickers/${item.id}.webp?v=8`;
-    item.pngUrl = `assets/stickers/${item.id}.png?v=8`;
-    item.animWebpUrl = `assets/animated/${item.id}.webp?v=8`;
-    item.animGifUrl = `assets/animated/${item.id}.gif?v=8`;
+    item.webpUrl = `assets/stickers/${item.id}.webp?v=9`;
+    item.pngUrl = `assets/stickers/${item.id}.png?v=9`;
+    item.animWebpUrl = `assets/animated/${item.id}.webp?v=9`;
+    item.animGifUrl = `assets/animated/${item.id}.gif?v=9`;
     item.style = "3d";
   });
 
@@ -71,10 +71,10 @@
           packId: "trini-culture-3d",
           packNumber: pack.number,
           packName: "Trini Food, Mas & Culture",
-          webpUrl: `assets/stickers/${s.id}.webp?v=8`,
-          pngUrl: `assets/stickers/${s.id}.png?v=8`,
-          animWebpUrl: `assets/animated/${s.id}.webp?v=8`,
-          animGifUrl: `assets/animated/${s.id}.gif?v=8`
+          webpUrl: `assets/stickers/${s.id}.webp?v=9`,
+          pngUrl: `assets/stickers/${s.id}.png?v=9`,
+          animWebpUrl: `assets/animated/${s.id}.webp?v=9`,
+          animGifUrl: `assets/animated/${s.id}.gif?v=9`
         });
       }
     });

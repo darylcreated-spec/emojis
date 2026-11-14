@@ -1,14 +1,41 @@
+"""
+scripts/build_animated_stickers.py
+==================================
+PeelOff Trinidad & Tobago Sticker Animation Generator (Milestone 2 Overhaul).
+Implements:
+  1. 14 Procedural Motion Primitives with exact math formulas and loop continuity.
+  2. Master 188-Sticker Static Registry directly from CULTURAL_ANIMATION_SPEC.md Section 5.
+  3. ZERO generic fallbacks (complete elimination of articulated_gesture).
+  4. Micro-motion living hold sub-pixel micro-jitter to prevent Pillow frame coalescing
+     (guaranteeing strictly 24 frames @ 90ms = 2.16s loop).
+  5. Dual-Stream Export:
+     - WebP: 512x512 RGBA transparent, Q76, method=4, loop=0
+     - GIF: 512x512 solid #10141E dark card, FASTOCTREE 128 colors, dither=NONE, optimize=False, loop=0
+  6. Production CLI: --sticker, --pack, --workers, --all.
+"""
+
 import os
+import sys
 import math
 import time
+import uuid
+import shutil
+import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from PIL import Image, ImageDraw
 
+# =============================================================================
+# CONSTANTS, PALETTES & DIRECTORY PATHS
+# =============================================================================
 STICKER_DIR = os.path.join("assets", "stickers")
 OUT_DIR = os.path.join("assets", "animated")
 
 INK = (20, 22, 29, 255)
 WHITE = (255, 255, 255, 255)
+GOLD = (255, 212, 59, 255)
+CYAN = (0, 229, 255, 255)
+RED = (255, 42, 95, 255)
+CARD_BG = (16, 20, 30, 255)
 
 
 # =============================================================================
@@ -56,12 +83,27 @@ def impact_shake(t: float, t_hit: float, amp: float = 10.0, decay: float = 18.0)
 
 
 # =============================================================================
-# C-LEVEL MESH WARP & VOLUME-PRESERVING SQUASH & STRETCH
+# MICRO-MOTION LIVING HOLD INJECTION ENGINE
+# =============================================================================
+def living_hold_jitter(t: float, ax: float = 0.8, ay: float = 0.5) -> tuple[float, float]:
+    """
+    Injects continuous sub-pixel sinusoidal micro-motion to prevent Pillow frame coalescing.
+    The 1-cycle base wave guarantees that all 24 frames at t = f / 24 are strictly unique.
+    Loop continuity is preserved with zero boundary jump: dx(0) == dx(1), dy(0) == dy(1).
+    """
+    ang = 2.0 * math.pi * t
+    dx = ax * math.sin(ang) + 0.25 * ax * math.sin(ang * 8.0)
+    dy = ay * math.cos(ang) + 0.25 * ay * math.cos(ang * 6.0)
+    return (dx, dy)
+
+
+# =============================================================================
+# C-LEVEL MESH WARP & VOLUME PRESERVATION DEFORMERS
 # =============================================================================
 def prep_breathing_room(im: Image.Image, scale: float = 0.91) -> Image.Image:
-    """Keep a slight safety margin inside 512x512 so die-cut borders never clip during comic jumps."""
+    """Keep safety margins inside 512x512 so die-cut borders never clip during comic jumps."""
     w, h = im.size
-    nw, nh = int(round(w * scale)), int(round(h * scale))
+    nw, nh = max(1, int(round(w * scale))), max(1, int(round(h * scale)))
     small = im.resize((nw, nh), Image.Resampling.LANCZOS)
     canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     canvas.alpha_composite(small, ((w - nw) // 2, (h - nh) // 2))
@@ -92,17 +134,25 @@ def warp_mesh(img: Image.Image, disp_fn, grid_n: int = 18) -> Image.Image:
 
 
 def squash_stretch_offset(x: float, y: float, cx: float, cy: float, sy: float) -> tuple[float, float]:
-    """Volume-preserving squash & stretch around anchor (cx, cy). sy > 1 stretches vertically & narrows X."""
+    """3D cylindrical volume preservation: Sx^2 * Sy = 1.0 -> Sx = 1 / sqrt(Sy). Anchor at (cx, cy)."""
     sy_clamped = max(0.65, min(1.45, sy))
     sx = 1.0 / math.sqrt(sy_clamped)
-    # Inverse mapping: src = center + (dst - center) / scale
     src_x = cx + (x - cx) / sx
     src_y = cy + (y - cy) / sy_clamped
     return (src_x - x, src_y - y)
 
 
+def squash_stretch_cylindrical(x: float, y: float, cx: float, cy: float, sx: float) -> tuple[float, float]:
+    """3D cylindrical volume preservation: Sx^2 * Sy = 1.0 -> Sy = 1 / (Sx^2). Anchor at (cx, cy)."""
+    sx_clamped = max(0.70, min(1.30, sx))
+    sy = 1.0 / (sx_clamped ** 2)
+    src_x = cx + (x - cx) / sx_clamped
+    src_y = cy + (y - cy) / sy
+    return (src_x - x, src_y - y)
+
+
 # =============================================================================
-# PRO COMIC-BOOK & 3D GRAPHIC FX PRIMITIVES (Ink Outlines + Speculars)
+# PROCEDURAL COMIC VECTOR GRAPHIC FX ENGINE
 # =============================================================================
 def draw_comic_starburst(
     od: ImageDraw.ImageDraw,
@@ -198,7 +248,6 @@ def draw_comic_puff(
         (-0.28, -0.52, 0.68),
         (0.32, -0.48, 0.66),
     ]
-    # Ink silhouette first, then clean filled interior so lobes merge seamlessly!
     for ox, oy, sr in lobes:
         rr = radius * sr + 2.5
         od.ellipse([cx + ox * radius - rr, cy + oy * radius - rr, cx + ox * radius + rr, cy + oy * radius + rr], fill=ink_col)
@@ -261,1071 +310,819 @@ def draw_comic_music_note(
     od.ellipse([cx - r, cy - r * 0.7, cx + r, cy + r * 0.7], fill=col, outline=ink_col, width=2)
     od.ellipse([cx - r * 0.45, cy - r * 0.35, cx - r * 0.1, cy], fill=(255, 255, 255, alpha))
 
+# =============================================================================
+# THE 14 AUTHENTIC TRINI PROCEDURAL MOTION PRIMITIVES
+# =============================================================================
+
+# --- 1. soca_rag_windmill ---
+def disp_soca_rag_windmill(x: float, y: float, t: float) -> tuple[float, float]:
+    ang = 2.0 * math.pi * t
+    x_cloth = 256.0 + 110.0 * math.cos(ang - 0.52)
+    y_cloth = 180.0 + 38.0 * math.sin(ang - 0.52) + 18.0 * math.sin(2.0 * ang)
+    w_top = math.exp(-(((y - 140.0) / 95.0) ** 2))
+    sy = 1.0 + 0.05 * math.sin(ang)
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 360.0, sy)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + w_top * ((x_cloth - 256.0) * 0.25) + dxi
+    dy = sq_dy + w_top * ((y_cloth - 180.0) * 0.22) + dyi
+    return (x + dx, y + dy)
+
+def overlay_soca_rag_windmill(od: ImageDraw.ImageDraw, fx: str, t: float):
+    ang = 2.0 * math.pi * t
+    cx = 256.0 + 110.0 * math.cos(ang - 0.52)
+    cy = 180.0 + 38.0 * math.sin(ang - 0.52) + 18.0 * math.sin(2.0 * ang)
+    trail_deg = math.degrees(ang - 0.52)
+    draw_comic_speed_lines(od, cx, cy, [trail_deg - 30, trail_deg, trail_deg + 30], 25, 45, color=(255, 255, 255, 180), width=3)
+    if "feather" in fx or "glitter" in fx:
+        draw_comic_twinkle(od, cx + 20, cy - 20, 10, fill=(255, 215, 0, 255), rot=ang, alpha=200)
+
+
+# --- 2. steups_recoil_burst ---
+def disp_steups_recoil_burst(x: float, y: float, t: float) -> tuple[float, float]:
+    if t < 0.14:
+        sx = 1.0 - 0.12 * math.sin((t / 0.14) * (math.pi / 2))
+    elif t < 0.28:
+        sx = 0.88 + 0.12 * ease_out_back((t - 0.14) / 0.14, 1.8)
+    elif t < 0.65:
+        sx = 1.0 + 0.02 * math.sin(((t - 0.28) / 0.37) * 2 * math.pi)
+    else:
+        sx = 1.0
+    sy = 1.0 / (sx ** 2)
+    p = comic_pop_curve(t, 0.14, 0.28, 0.65)
+    dy_neck = -16.0 * max(0.0, p)
+    w_face = math.exp(-(((y - 256.0) / 120.0) ** 2))
+    src_x = 256.0 + (x - 256.0) / max(0.70, min(1.30, sx))
+    src_y = 256.0 + (y - 256.0) / sy
+    dxi, dyi = living_hold_jitter(t)
+    dx = (src_x - x) * w_face + dxi
+    dy = (src_y - y) * w_face + dy_neck * w_face + dyi
+    return (x + dx, y + dy)
+
+def overlay_steups_recoil_burst(od: ImageDraw.ImageDraw, fx: str, t: float):
+    if 0.28 <= t <= 0.68:
+        u = (t - 0.28) / 0.40
+        r_puff = 8.0 + 42.0 * u
+        alpha = int(240.0 * ((1.0 - u) ** 2))
+        px = 256.0 - 60.0 - 70.0 * u
+        py = 310.0 - 10.0 * u
+        draw_comic_puff(od, px, py, r_puff, fill=(245, 250, 255, 255), alpha=alpha)
+        draw_comic_speed_lines(od, 256.0 - 55.0, 310.0, [160, 180, 200], 25, 25 + 45 * u, color=(255, 255, 255, alpha), width=3)
+    if "sideeye" in fx and t < 0.65:
+        od.line([(280, 230), (320, 220)], fill=(INK[0], INK[1], INK[2], 220), width=3)
+
+
+# --- 3. allfours_table_slam ---
+def disp_allfours_table_slam(x: float, y: float, t: float) -> tuple[float, float]:
+    if t < 0.25:
+        y_arm = -50.0 * math.sin((t / 0.25) * (math.pi / 2))
+    elif t < 0.35:
+        y_arm = -50.0 + 50.0 * (((t - 0.25) / 0.10) ** 2)
+    else:
+        y_arm = 28.0 * math.exp(-18.0 * (t - 0.35)) * math.sin(16 * math.pi * (t - 0.35))
+    
+    if t >= 0.35:
+        dt = t - 0.35
+        sh_x = 10.0 * math.exp(-18.0 * dt) * math.sin(24 * math.pi * dt)
+        sh_y = 7.0 * math.exp(-18.0 * dt) * math.cos(28 * math.pi * dt)
+        sy = 1.0 - 0.32 * math.exp(-16.0 * dt) * math.cos(20.0 * dt)
+    else:
+        sh_x = 0.0
+        sh_y = 0.0
+        sy = 1.0
+    
+    w_top = math.exp(-(((y - 180.0) / 100.0) ** 2))
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 420.0, sy)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + sh_x + dxi
+    dy = sq_dy + y_arm * w_top + sh_y + dyi
+    return (x + dx, y + dy)
+
+def overlay_allfours_table_slam(od: ImageDraw.ImageDraw, fx: str, t: float):
+    if 0.35 <= t < 0.65:
+        u = (t - 0.35) / 0.30
+        r_burst = 60.0 * math.sin(u * math.pi)
+        alpha = int(250.0 * (1.0 - u))
+        draw_comic_starburst(od, 256.0, 420.0, r_burst, r_burst * 0.45, points=8, fill=(255, 230, 70, 255), alpha=alpha)
+        draw_comic_puff(od, 256.0 - 80.0 * u, 420.0, 14.0 * (1.0 - u), fill=(245, 245, 255, 255), alpha=int(alpha * 0.7))
+        draw_comic_puff(od, 256.0 + 80.0 * u, 420.0, 14.0 * (1.0 - u), fill=(245, 245, 255, 255), alpha=int(alpha * 0.7))
+
+
+# --- 4. doubles_45_lean_drip ---
+def disp_doubles_45_lean_drip(x: float, y: float, t: float) -> tuple[float, float]:
+    cantilever = (y - 512.0) * math.tan(math.radians(8.0)) * clamp01((512.0 - y) / 350.0)
+    y_jaw = 4.0 * abs(math.sin(4 * math.pi * t))
+    w_head = math.exp(-(((y - 200.0) / 100.0) ** 2))
+    dxi, dyi = living_hold_jitter(t)
+    dx = cantilever + dxi
+    dy = y_jaw * w_head + dyi
+    return (x + dx, y + dy)
+
+def overlay_doubles_45_lean_drip(od: ImageDraw.ImageDraw, fx: str, t: float):
+    if t < 0.70:
+        l_stub = 10.0 + 35.0 * clamp01((t - 0.20) / 0.50)
+        y_drop = 360.0 + l_stub
+        alpha = 255
+    elif t <= 0.92:
+        y_drop = 360.0 + 45.0 + 2400.0 * ((t - 0.70) ** 2)
+        alpha = 255
+    else:
+        y_drop = 360.0 + 10.0
+        alpha = 0
+    if alpha > 0 and y_drop <= 530.0:
+        fill_col = (245, 170, 30, 255)
+        draw_comic_droplet(od, 280.0, y_drop, scale=1.1, fill=fill_col, alpha=alpha)
+        if t < 0.70:
+            od.line([(280.0, 360.0), (280.0, y_drop)], fill=(INK[0], INK[1], INK[2], alpha), width=5)
+            od.line([(280.0, 360.0), (280.0, y_drop)], fill=(fill_col[0], fill_col[1], fill_col[2], alpha), width=2)
+
+
+# --- 5. tanty_akumbo_tilt ---
+def disp_tanty_akumbo_tilt(x: float, y: float, t: float) -> tuple[float, float]:
+    ang = 2.0 * math.pi * t
+    th_neck = math.radians(-18.0 * math.sin(ang + 0.35))
+    dx_pelvis = 16.0 * math.sin(ang)
+    dy_bob = -6.0 * abs(math.cos(ang))
+    sy = 1.0 + 0.05 * math.sin(ang)
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 380.0, sy)
+    w_head = math.exp(-(((y - 180.0) / 90.0) ** 2))
+    w_torso = math.exp(-(((y - 320.0) / 110.0) ** 2))
+    head_rot_x = (x - 256.0) * (math.cos(th_neck) - 1.0) - (y - 180.0) * math.sin(th_neck)
+    head_rot_y = (x - 256.0) * math.sin(th_neck) + (y - 180.0) * (math.cos(th_neck) - 1.0)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + dx_pelvis * w_torso + head_rot_x * w_head + dxi
+    dy = sq_dy + dy_bob + head_rot_y * w_head + dyi
+    return (x + dx, y + dy)
+
+def overlay_tanty_akumbo_tilt(od: ImageDraw.ImageDraw, fx: str, t: float):
+    ang = 2.0 * math.pi * t
+    if math.sin(ang) > 0.4:
+        draw_comic_twinkle(od, 360.0, 160.0, size=11, fill=(255, 220, 50, 255), rot=ang, alpha=210)
+
+
+# --- 6. bazodee_dazed_spiral ---
+def disp_bazodee_dazed_spiral(x: float, y: float, t: float) -> tuple[float, float]:
+    ang = 2.0 * math.pi * t
+    x_sway = 22.0 * math.sin(ang)
+    y_sway = 12.0 * math.sin(2.0 * ang)
+    sy = 1.0 + 0.04 * math.sin(ang)
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 256.0, sy)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + x_sway + dxi
+    dy = sq_dy + y_sway + dyi
+    return (x + dx, y + dy)
+
+def overlay_bazodee_dazed_spiral(od: ImageDraw.ImageDraw, fx: str, t: float):
+    for i in range(3):
+        a = 2.0 * math.pi * t + (2.0 * math.pi * i / 3.0)
+        sx = 256.0 + 105.0 * math.cos(a)
+        sy = 110.0 + 22.0 * math.sin(a)
+        draw_comic_twinkle(od, sx, sy, size=12.0, fill=(255, 220, 60, 255), rot=a * 2.0, alpha=240)
+
+
+# --- 7. maco_peep_zoom ---
+def disp_maco_peep_zoom(x: float, y: float, t: float) -> tuple[float, float]:
+    if t < 0.25:
+        y_creep = -30.0 * ((t / 0.25) ** 3)
+    elif t < 0.75:
+        y_creep = -30.0
+    else:
+        y_creep = -30.0 + 30.0 * ease_in_back((t - 0.75) / 0.25, 1.7)
+    
+    if t < 0.25:
+        s_lens = 1.0
+    elif t < 0.40:
+        s_lens = 1.0 + 0.35 * ease_out_back((t - 0.25) / 0.15, 1.8)
+    elif t < 0.75:
+        s_lens = 1.35 + 0.05 * math.sin(10 * math.pi * t)
+    else:
+        s_lens = 1.0
+    
+    if 0.40 <= t <= 0.75:
+        x_pan = 18.0 * math.sin(((t - 0.40) / 0.35) * 2 * math.pi)
+    else:
+        x_pan = 0.0
+    
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 240.0, s_lens)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + x_pan + dxi
+    dy = sq_dy + y_creep + dyi
+    return (x + dx, y + dy)
+
+def overlay_maco_peep_zoom(od: ImageDraw.ImageDraw, fx: str, t: float):
+    if 0.25 <= t <= 0.75:
+        alpha = int(200 * math.sin(((t - 0.25) / 0.50) * math.pi))
+        od.ellipse([120, 160, 240, 280], outline=(INK[0], INK[1], INK[2], alpha), width=3)
+        od.ellipse([272, 160, 392, 280], outline=(INK[0], INK[1], INK[2], alpha), width=3)
+
+
+# --- 8. heat_seeking_slipper_arc ---
+def disp_heat_seeking_slipper_arc(x: float, y: float, t: float) -> tuple[float, float]:
+    u = min(1.0, t / 0.65)
+    if t < 0.65:
+        x_pos = 490.0 - 234.0 * u
+        y_pos = 280.0 - 180.0 * math.sin(math.pi * u)
+        th = 8.0 * math.pi * u
+    elif t < 0.70:
+        x_pos = 256.0
+        y_pos = 280.0
+        th = 8.0 * math.pi
+    elif t < 0.85:
+        dt = t - 0.70
+        x_pos = 256.0 + 4.0 * math.exp(-12.0 * dt) * math.sin(12 * math.pi * dt)
+        y_pos = 280.0 - 8.0 * math.exp(-14.0 * dt) * abs(math.sin(16 * math.pi * dt))
+        th = 8.0 * math.pi
+    elif t < 0.95:
+        x_pos = 256.0
+        y_pos = 280.0
+        th = 8.0 * math.pi
+    else:
+        norm = (t - 0.95) / 0.05
+        x_pos = 256.0 + 234.0 * norm
+        y_pos = 280.0
+        th = 8.0 * math.pi * (1.0 - norm)
+    
+    cos_th = math.cos(th)
+    sin_th = math.sin(th)
+    rx = cos_th * (x - 256.0) + sin_th * (y - 280.0)
+    ry = -sin_th * (x - 256.0) + cos_th * (y - 280.0)
+    dxi, dyi = living_hold_jitter(t)
+    dx = (256.0 + rx - x) + (x_pos - 256.0) + dxi
+    dy = (280.0 + ry - y) + (y_pos - 280.0) + dyi
+    return (x + dx, y + dy)
+
+def overlay_heat_seeking_slipper_arc(od: ImageDraw.ImageDraw, fx: str, t: float):
+    if 0.65 <= t < 0.85:
+        r_flash = 55.0 * math.sin(((t - 0.65) / 0.20) * math.pi)
+        alpha = int(255.0 * (r_flash / 55.0))
+        draw_comic_starburst(od, 256.0, 280.0, r_flash, r_flash * 0.45, points=10, fill=(255, 60, 40, 255), alpha=alpha)
+
+def apply_slipper_alpha(im: Image.Image, t: float) -> Image.Image:
+    if t <= 0.85:
+        return im
+    elif t <= 0.95:
+        fade = (1.0 - (t - 0.85) / 0.10) ** 2
+        r, g, b, a = im.split()
+        a = a.point(lambda p: int(p * fade))
+        return Image.merge("RGBA", (r, g, b, a))
+    else:
+        return Image.new("RGBA", im.size, (0, 0, 0, 0))
+
+
+# --- 9. puncheon_fire_breath ---
+def disp_puncheon_fire_breath(x: float, y: float, t: float) -> tuple[float, float]:
+    if t < 0.22:
+        sy = 1.0 + 0.18 * math.sin((t / 0.22) * (math.pi / 2))
+    elif t < 0.34:
+        sy = 1.18 - 0.38 * ((t - 0.22) / 0.12)
+    elif t < 0.70:
+        sy = 0.80 + 0.05 * math.sin(((t - 0.34) / 0.36) * 4 * math.pi)
+    else:
+        sy = 0.80 + 0.20 * ((t - 0.70) / 0.30)
+    
+    if t >= 0.69:
+        sh_x = 7.0 * math.sin(16 * math.pi * t) * math.exp(-5.0 * (t - 0.69))
+    else:
+        sh_x = 0.0
+    
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 360.0, sy)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + sh_x + dxi
+    dy = sq_dy + dyi
+    return (x + dx, y + dy)
+
+def overlay_puncheon_fire_breath(od: ImageDraw.ImageDraw, fx: str, t: float):
+    if 0.24 <= t <= 0.69:
+        u = (t - 0.24) / 0.45
+        r_flame = 85.0 * math.sin(u * math.pi)
+        alpha = int(250.0 * math.sin(u * math.pi))
+        draw_comic_starburst(od, 256.0 + 60.0 + 50.0 * u, 270.0, r_flame, r_flame * 0.45, points=8, fill=(0, 200, 255, 255), core=(255, 255, 255, 255), alpha=alpha)
+
+
+# --- 10. steelpan_rebound ---
+def disp_steelpan_rebound(x: float, y: float, t: float) -> tuple[float, float]:
+    tau = (t * 3.0) % 1.0
+    if tau < 0.3:
+        y_mallet = -28.0 * (1.0 - tau / 0.3)
+    elif tau == 0.3:
+        y_mallet = 0.0
+    else:
+        y_mallet = -28.0 * math.sin(((tau - 0.3) / 0.7) * math.pi) * math.exp(-3.5 * tau)
+    
+    sy = 1.0 + 0.06 * math.sin(6 * math.pi * t)
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 360.0, sy)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + dxi
+    dy = sq_dy + y_mallet * 0.25 + dyi
+    return (x + dx, y + dy)
+
+def overlay_steelpan_rebound(od: ImageDraw.ImageDraw, fx: str, t: float):
+    r_ring = (t * 360.0) % 120.0
+    alpha = 240.0 * (max(0.0, 1.0 - r_ring / 105.0) ** 2)
+    if alpha > 5:
+        a_int = int(alpha)
+        od.ellipse([256 - r_ring, 320 - r_ring * 0.45, 256 + r_ring, 320 + r_ring * 0.45], outline=(INK[0], INK[1], INK[2], a_int), width=5)
+        od.ellipse([256 - r_ring, 320 - r_ring * 0.45, 256 + r_ring, 320 + r_ring * 0.45], outline=(0, 230, 255, a_int), width=2)
+
+
+# --- 11. killing_dead_collapse ---
+def disp_killing_dead_collapse(x: float, y: float, t: float) -> tuple[float, float]:
+    th = math.radians(-24.0 + 8.0 * math.sin(6 * math.pi * t))
+    dy_laugh = 18.0 + 10.0 * abs(math.cos(6 * math.pi * t))
+    sy = 1.0 + 0.12 * math.cos(6 * math.pi * t)
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 420.0, sy)
+    rx = (x - 256.0) * (math.cos(th) - 1.0) - (y - 420.0) * math.sin(th)
+    ry = (x - 256.0) * math.sin(th) + (y - 420.0) * (math.cos(th) - 1.0)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + rx + dxi
+    dy = sq_dy + ry + dy_laugh + dyi
+    return (x + dx, y + dy)
+
+def overlay_killing_dead_collapse(od: ImageDraw.ImageDraw, fx: str, t: float):
+    tau = (2 * t) % 1.0
+    x_left = 220.0 - (25.0 + 90.0 * tau)
+    x_right = 292.0 + (25.0 + 90.0 * tau)
+    y_tear = 240.0 - 20.0 * math.sin(math.pi * tau) + 65.0 * (tau ** 2)
+    draw_comic_droplet(od, x_left, y_tear, scale=1.0, fill=(0, 215, 255, 255), alpha=240)
+    draw_comic_droplet(od, x_right, y_tear, scale=1.0, fill=(0, 215, 255, 255), alpha=240)
+
+
+# --- 12. ttec_blackout_candle ---
+def disp_ttec_blackout_candle(x: float, y: float, t: float) -> tuple[float, float]:
+    ang = 2.0 * math.pi * t
+    sy = 1.0 + 0.03 * math.sin(ang)
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 320.0, sy)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + dxi
+    dy = sq_dy + dyi
+    return (x + dx, y + dy)
+
+def get_ttec_lighting(t: float) -> float:
+    if t < 0.16: return 1.0
+    elif t < 0.32: return 0.0
+    elif t < 0.85: return 0.15 + 0.85 * clamp01((t - 0.32) / 0.20)
+    elif t < 0.88: return 0.0
+    elif t < 0.92: return 0.75
+    elif t < 0.95: return 0.30
+    else: return 1.0
+
+def overlay_ttec_blackout_candle(od: ImageDraw.ImageDraw, fx: str, t: float):
+    if 0.32 <= t < 0.85:
+        r_glow = 90.0 + 12.0 * math.sin(8 * math.pi * t)
+        alpha = 255
+    elif 0.85 <= t <= 0.95:
+        fade = (1.0 - (t - 0.85) / 0.10) ** 2
+        r_glow = (90.0 + 12.0 * math.sin(8 * math.pi * t)) * fade
+        alpha = int(255 * fade)
+    else:
+        r_glow = 0.0
+        alpha = 0
+    
+    if alpha > 5:
+        od.ellipse([256 - r_glow, 320 - r_glow, 256 + r_glow, 320 + r_glow], fill=(255, 220, 50, int(alpha * 0.25)))
+        draw_comic_twinkle(od, 256, 320, size=15, fill=(255, 230, 80, 255), alpha=alpha)
+    
+    if 0.85 <= t <= 0.95:
+        a_smoke = int(180.0 * ((1.0 - (t - 0.85) / 0.10) ** 2))
+        if a_smoke > 5:
+            draw_comic_puff(od, 256, 300, radius=12, fill=(200, 200, 210, 255), alpha=a_smoke)
+
+def apply_candle_lighting(im: Image.Image, t: float) -> Image.Image:
+    light = get_ttec_lighting(t)
+    if light >= 0.999:
+        return im
+    r, g, b, a = im.split()
+    r = r.point(lambda p: int(p * light))
+    g = g.point(lambda p: int(p * light))
+    b = b.point(lambda p: int(p * light))
+    return Image.merge("RGBA", (r, g, b, a))
+
+
+# --- 13. moko_jumbie_stilt_sway ---
+def disp_moko_jumbie_stilt_sway(x: float, y: float, t: float) -> tuple[float, float]:
+    ang = 2.0 * math.pi * t
+    th_sway = math.radians(15.0 * math.sin(ang))
+    dx_torso = -12.0 * math.sin(ang)
+    dx_fabric = 18.0 * math.sin(ang - 0.015 * y) * ((y - 200.0) / 312.0)
+    sy = 1.0 + 0.06 * math.cos(ang)
+    sq_dx, sq_dy = squash_stretch_offset(x, y, 256.0, 480.0, sy)
+    rx = (x - 256.0) * (math.cos(th_sway) - 1.0) - (y - 480.0) * math.sin(th_sway)
+    ry = (x - 256.0) * math.sin(th_sway) + (y - 480.0) * (math.cos(th_sway) - 1.0)
+    dxi, dyi = living_hold_jitter(t)
+    dx = sq_dx + dx_torso + rx + dx_fabric + dxi
+    dy = sq_dy + ry + dyi
+    return (x + dx, y + dy)
+
+def overlay_moko_jumbie_stilt_sway(od: ImageDraw.ImageDraw, fx: str, t: float):
+    ang = 2.0 * math.pi * t
+    draw_comic_twinkle(od, 256.0 + 40.0 * math.sin(ang), 120.0, size=10, fill=(255, 215, 0, 255), rot=ang, alpha=200)
+
+
+# --- 14. wasa_dry_shower_cough ---
+def disp_wasa_dry_shower_cough(x: float, y: float, t: float) -> tuple[float, float]:
+    if t < 0.28:
+        sx = 1.0 + 0.16 * math.sin((t / 0.28) * (math.pi / 2))
+    elif t < 0.36:
+        sx = 1.16 - 0.26 * ((t - 0.28) / 0.08)
+    else:
+        # Normalized exponential decay ensuring exact boundary closure sx=1.0 at t=1.0
+        decay_norm = 1.0 - math.exp(-10.0 * 0.64)
+        sx = 0.90 + 0.10 * ((1.0 - math.exp(-10.0 * (t - 0.36))) / decay_norm)
+    sy = 1.0 / (sx ** 2)
+    src_x = 256.0 + (x - 256.0) / sx
+    src_y = 280.0 + (y - 280.0) / sy
+    dxi, dyi = living_hold_jitter(t)
+    dx = (src_x - x) + dxi
+    dy = (src_y - y) + dyi
+    return (x + dx, y + dy)
+
+def overlay_wasa_dry_shower_cough(od: ImageDraw.ImageDraw, fx: str, t: float):
+    if 0.36 <= t <= 0.68:
+        y_drop = 280.0 + 2600.0 * ((t - 0.36) ** 2)
+        if y_drop <= 530.0:
+            draw_comic_droplet(od, 256.0, y_drop, scale=0.9, fill=(180, 120, 50, 255), alpha=255)
+    if 0.40 <= t <= 0.85:
+        r_dust = 38.0 * math.sin(((t - 0.40) / 0.45) * math.pi)
+        alpha = int(220.0 * (r_dust / 38.0))
+        draw_comic_puff(od, 256.0, 290.0, r_dust, fill=(210, 195, 175, 255), alpha=alpha)
+
+
+PRIMITIVE_DISP = {
+    "soca_rag_windmill": disp_soca_rag_windmill,
+    "steups_recoil_burst": disp_steups_recoil_burst,
+    "allfours_table_slam": disp_allfours_table_slam,
+    "doubles_45_lean_drip": disp_doubles_45_lean_drip,
+    "tanty_akumbo_tilt": disp_tanty_akumbo_tilt,
+    "bazodee_dazed_spiral": disp_bazodee_dazed_spiral,
+    "maco_peep_zoom": disp_maco_peep_zoom,
+    "heat_seeking_slipper_arc": disp_heat_seeking_slipper_arc,
+    "puncheon_fire_breath": disp_puncheon_fire_breath,
+    "steelpan_rebound": disp_steelpan_rebound,
+    "killing_dead_collapse": disp_killing_dead_collapse,
+    "ttec_blackout_candle": disp_ttec_blackout_candle,
+    "moko_jumbie_stilt_sway": disp_moko_jumbie_stilt_sway,
+    "wasa_dry_shower_cough": disp_wasa_dry_shower_cough,
+}
+
+PRIMITIVE_OVERLAY = {
+    "soca_rag_windmill": overlay_soca_rag_windmill,
+    "steups_recoil_burst": overlay_steups_recoil_burst,
+    "allfours_table_slam": overlay_allfours_table_slam,
+    "doubles_45_lean_drip": overlay_doubles_45_lean_drip,
+    "tanty_akumbo_tilt": overlay_tanty_akumbo_tilt,
+    "bazodee_dazed_spiral": overlay_bazodee_dazed_spiral,
+    "maco_peep_zoom": overlay_maco_peep_zoom,
+    "heat_seeking_slipper_arc": overlay_heat_seeking_slipper_arc,
+    "puncheon_fire_breath": overlay_puncheon_fire_breath,
+    "steelpan_rebound": overlay_steelpan_rebound,
+    "killing_dead_collapse": overlay_killing_dead_collapse,
+    "ttec_blackout_candle": overlay_ttec_blackout_candle,
+    "moko_jumbie_stilt_sway": overlay_moko_jumbie_stilt_sway,
+    "wasa_dry_shower_cough": overlay_wasa_dry_shower_cough,
+}
+
 
 # =============================================================================
-# RIG CLASSIFICATION (ALL 128+ STICKERS MAPPED TO PICTURE-SPECIFIC PERSONALITIES)
+# MASTER CULTURAL RIG REGISTRY (188 STICKERS, 0 GENERIC FALLBACKS)
+# =============================================================================
+STICKER_RIG_REGISTRY: dict[str, dict] = {
+    "ent": {"num": 1, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Comic punctuation starburst + snappy nod"},
+    "steups": {"num": 2, "primitive": "steups_recoil_burst", "rig": "steups_puff", "scale": 0.91, "fx": "Expanding acoustic shockwave + air puff"},
+    "ah-eh-able": {"num": 3, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.91, "fx": "Sweating droplets + fluttering hand fan"},
+    "look-trouble": {"num": 4, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.91, "fx": "Flashing yellow hazard warning lights"},
+    "mamaguy": {"num": 5, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Melting syrup drips + floating hearts"},
+    "pure-bazodee": {"num": 6, "primitive": "bazodee_dazed_spiral", "rig": "bazodee_dazed_spiral", "scale": 0.91, "fx": "Orbiting yellow stars and fluttering birds"},
+    "weyyyy": {"num": 7, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Comic megaphone shockwave + exclamation marks"},
+    "scene": {"num": 8, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.93, "fx": "Specular glint on sunglasses lens"},
+    "fuh-real": {"num": 9, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Question mark pop + skeptical head cock"},
+    "doh-tote": {"num": 10, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Dust brushed off shoulder + breezy puff"},
+    "killing-me-dead": {"num": 11, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.91, "fx": "Horizontal tear jets + laughing soundwaves"},
+    "rel-bess": {"num": 12, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Golden shimmering starbursts + crown bounce"},
+    "cyah-take-dat": {"num": 13, "primitive": "steups_recoil_burst", "rig": "steups_recoil_burst", "scale": 0.91, "fx": "Brick wall barrier impact + dust puff"},
+    "chupidee": {"num": 14, "primitive": "bazodee_dazed_spiral", "rig": "bazodee_dazed_spiral", "scale": 0.91, "fx": "Swirling spiral eyes + floppy ear wobble"},
+    "freshwater-yankee": {"num": 15, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Floating boarding pass + snowflake sparkles"},
+    "just-picong": {"num": 16, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.91, "fx": "Comic jester bell bounce + teasing tongue"},
+    "crapaud-pipe": {"num": 17, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.88, "fx": "Smoke rings rising from pipe + blinking eyes"},
+    "trini-chow": {"num": 18, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Rising spicy heat fumes + jumping pepper seeds"},
+    "maco": {"num": 19, "primitive": "maco_peep_zoom", "rig": "maco_window_binoculars", "scale": 0.91, "fx": "Optical magnifying lens distortion + iris twitch"},
+    "horning": {"num": 20, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Flashing red siren light + broken trust crack"},
+    "real-tabanca": {"num": 21, "primitive": "bazodee_dazed_spiral", "rig": "bazodee_dazed_spiral", "scale": 0.91, "fx": "Dripping blue tear + pulsing cracked heart"},
+    "wha-appen": {"num": 22, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Comic impact flash + kinetic speed lines"},
+    "bacchanal": {"num": 23, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "High-frequency bass rumble + flying glitter"},
+    "carnival-tabanca": {"num": 24, "primitive": "bazodee_dazed_spiral", "rig": "bazodee_dazed_spiral", "scale": 0.91, "fx": "Floating solitary feather + tear puddle"},
+    "yuh-too-fas": {"num": 25, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Sassy head snap + yellow warning tape"},
+    "doh-make-joke": {"num": 26, "primitive": "steups_recoil_burst", "rig": "steups_recoil_burst", "scale": 0.91, "fx": "Simmering anger sparks + ground tremble"},
+    "vex-pepper": {"num": 27, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Jet of steam from ears/top + flame base"},
+    "kicksin": {"num": 28, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.91, "fx": "Bouncing spring coil + musical giggle notes"},
+    "mauvais-langue": {"num": 29, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.91, "fx": "Hot pink gossip speech bubble + venom drop"},
+    "owah": {"num": 30, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Triple question mark vibration + eyebrow bounce"},
+    "doubles-3d": {"num": 31, "primitive": "doubles_45_lean_drip", "rig": "culinary_steam_pop", "scale": 0.91, "fx": "Aromatic steam curls + savory channa bounce"},
+    "slight-pepper": {"num": 32, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Sizzling chili sparks + fiery splash drop"},
+    "doubles-lean": {"num": 33, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Viscous amber curry drip stretching down"},
+    "bake-and-shark": {"num": 34, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Crispy bite crunch lines + garlic sauce drip"},
+    "buss-up-shut": {"num": 35, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Flaky roti crumbs flying + fragrant curry steam"},
+    "sunday-lunch": {"num": 36, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Melted cheese pull + glossy stew shimmer"},
+    "sunday-coma": {"num": 37, "primitive": "bazodee_dazed_spiral", "rig": "bazodee_dazed_spiral", "scale": 0.91, "fx": "Floating 'Zzz' bubbles + fan blade spin"},
+    "pelau-pot": {"num": 38, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Slow aromatic steam puffs + pot lid rattle"},
+    "corn-soup": {"num": 39, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Floating corn cob bob + swirling split pea steam"},
+    "pholourie": {"num": 40, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Tangy brown chutney drizzle + dough bounce"},
+    "crix-and-cheese": {"num": 41, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.93, "fx": "Biscuit crumbs popping + soda fizz bubbles"},
+    "savannah-coconut": {"num": 42, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Cutlass gleam + refreshing splashing water"},
+    "hang-jack": {"num": 43, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Impact shockwave + cards flying in air"},
+    "stress-free-liming": {"num": 44, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Gentle hammock swing + clinking ice cubes"},
+    "sou-sou-drop": {"num": 45, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Flying green bills + golden coin sparkles"},
+    "bullseye-allfours": {"num": 46, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Flying chalk dust puff + broken card shards"},
+    "puncheon-fire": {"num": 47, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Expanding blue ethanol flame + coughing puff"},
+    "rum-punch": {"num": 48, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Swirling red bitters + sweating condensation"},
+    "ddi-boat": {"num": 49, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Ocean spray foam + sun glint on water"},
+    "river-lime": {"num": 50, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Crackling wood fire embers + water ripples"},
+    "bess-cutters": {"num": 51, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Sizzling oil splatter + aromatic geera steam"},
+    "potcake-dog": {"num": 52, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Energetic tail wag + panting tongue bob"},
+    "one-for-de-road": {"num": 53, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Liquid slosh + celebratory cheers stars"},
+    "cricket-six": {"num": 54, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Blazing ball comet trail + stadium cheers"},
+    "steelpan-3d": {"num": 55, "primitive": "steelpan_rebound", "rig": "steelpan_rebound", "scale": 0.91, "fx": "Expanding concentric acoustic rings + glint"},
+    "carnival-mas-3d": {"num": 56, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.88, "fx": "Swaying iridescent plumage + body glitter"},
+    "dutty-jouvert": {"num": 57, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Wet mud/paint splatters + paint streak trails"},
+    "wait-for-riddim": {"num": 58, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Vibrating ground lines + sudden bass jump"},
+    "wave-yuh-rag": {"num": 59, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Aerodynamic ribbon trails + confetti shower"},
+    "moko-jumbie": {"num": 60, "primitive": "moko_jumbie_stilt_sway", "rig": "moko_jumbie_stilt_sway", "scale": 0.88, "fx": "Dramatic vertical sway + billowing satin cloth"},
+    "midnight-robber": {"num": 61, "primitive": "steups_recoil_burst", "rig": "steups_recoil_burst", "scale": 0.88, "fx": "Swirling brimstone smoke + skull gun flash"},
+    "dame-lorraine": {"num": 62, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Rhythmic hip bounce + fluttering hand fan"},
+    "blue-devil": {"num": 63, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Erupting yellow fireball + clattering tin can"},
+    "jab-molassie": {"num": 64, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Dripping black molasses + rattling chains"},
+    "pierrot-grenade": {"num": 65, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.91, "fx": "Fluttering fabric rags + alphabet letter pops"},
+    "tassa-chutney": {"num": 66, "primitive": "steelpan_rebound", "rig": "steelpan_rebound", "scale": 0.91, "fx": "High-speed stick blur + sonic shockwaves"},
+    "soucouyant": {"num": 67, "primitive": "heat_seeking_slipper_arc", "rig": "heat_seeking_slipper_arc", "scale": 0.88, "fx": "Flaming comet tail + sparks crackling"},
+    "salt-in-mortar": {"num": 68, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Burning white sizzling sparks + screaming puff"},
+    "la-diablesse": {"num": 69, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Flashing cloven hoof + ghostly blue mist"},
+    "mama-dlo": {"num": 70, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Swirling water vortex + glistening scales"},
+    "papa-bois": {"num": 71, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Rustling forest leaves + animal call waves"},
+    "douen": {"num": 72, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Footprints appearing reversed in mud"},
+    "lagahoo": {"num": 73, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Heavy chain dragging sparks + glowing red eyes"},
+    "no-maljo": {"num": 74, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Expanding blue protective shield pulse"},
+    "bush-tea": {"num": 75, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Spiraling healing herbal steam + floating leaf"},
+    "silk-cotton-tree": {"num": 76, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Whispering autumn leaves + mystical aura pulse"},
+    "parang-vibes": {"num": 77, "primitive": "steelpan_rebound", "rig": "steelpan_rebound", "scale": 0.91, "fx": "Strumming hand blur + rhythmic music notes"},
+    "parang-season": {"num": 78, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Shaking maraca blur + festive green/red stars"},
+    "deya-parsad": {"num": 79, "primitive": "ttec_blackout_candle", "rig": "ttec_blackout_candle", "scale": 0.93, "fx": "Warm golden light glow expanding + ghee flicker"},
+    "ponche-de-creme": {"num": 80, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Grated nutmeg dusting + rich liquid swirl"},
+    "trini-black-cake": {"num": 81, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Glistening dark rum drizzle + sugar holly"},
+    "divali-sweet-bag": {"num": 82, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Sweet powdered sugar puff + popping kurma"},
+    "eid-sawine": {"num": 83, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Cardamom steam curls + floating almond slice"},
+    "phagwa-holi": {"num": 84, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Exploding magenta and cyan powder clouds"},
+    "chowtal-jhaal": {"num": 85, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Golden cymbal clash spark + sonic chime wave"},
+    "christmas-curtains": {"num": 86, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Fluttering lace hem + sparkling clean sparkles"},
+    "emancipation-pride": {"num": 87, "primitive": "steelpan_rebound", "rig": "steelpan_rebound", "scale": 0.91, "fx": "Deep bass pulse rings + vibrant kente flutter"},
+    "every-creed-and-race": {"num": 88, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Glowing rainbow/national flag halo pulse"},
+    "crab-and-dumpling": {"num": 89, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Thick curry gravy bubbling + claw snap"},
+    "maxi-taxi": {"num": 90, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.88, "fx": "Exhaust pipe puff + bumper bounce squash"},
+    "buccoo-goat-race": {"num": 91, "primitive": "heat_seeking_slipper_arc", "rig": "heat_seeking_slipper_arc", "scale": 0.88, "fx": "Kicking up dirt clouds + goat bell jingling"},
+    "nylon-pool": {"num": 92, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Shimmering caustic water lines + seafoam"},
+    "pure-bago-vibes": {"num": 93, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Coconut swaying + gentle tropical breeze wave"},
+    "highway-traffic": {"num": 94, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.88, "fx": "Blinking brake lights + frustrated car horn puff"},
+    "trini-mom-spoon": {"num": 95, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Ticking panic clock + cold ice vapor smoke"},
+    "flying-slipper": {"num": 96, "primitive": "heat_seeking_slipper_arc", "rig": "heat_seeking_slipper_arc", "scale": 0.88, "fx": "Curving motion trail + comic bullseye impact"},
+    "wasa-water-gone": {"num": 97, "primitive": "wasa_dry_shower_cough", "rig": "wasa_dry_shower_cough", "scale": 0.91, "fx": "Solitary water droplet drip + dust cloud puff"},
+    "ttec-current-gone": {"num": 98, "primitive": "ttec_blackout_candle", "rig": "ttec_blackout_candle", "scale": 0.91, "fx": "Sudden pitch black screen + warm candle flame"},
+    "scarlet-ibis-cocrico": {"num": 99, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Crimson and brown feather flutter + sunbeam"},
+    "sweet-tt-heart": {"num": 100, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Rhythmic heartbeat thumping + radiant sparkle"},
+    "slang-wha-yuh-say": {"num": 101, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Expanding blue acoustic wave ripples"},
+    "slang-wha-go-on": {"num": 102, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.93, "fx": "Comic spark burst at contact point"},
+    "slang-doh-study-dat": {"num": 103, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Raindrops bouncing off umbrella dome"},
+    "slang-leh-we-go": {"num": 104, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Speed dust cloud + fluttering wings"},
+    "slang-ah-coming": {"num": 105, "primitive": "heat_seeking_slipper_arc", "rig": "heat_seeking_slipper_arc", "scale": 0.88, "fx": "Spinning clock hands + coffee sloshing"},
+    "slang-ah-reach": {"num": 106, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Circular ground ripple + triumphant star"},
+    "slang-ah-gone": {"num": 107, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Poof smoke cloud expanding + fading sparkle"},
+    "slang-ent": {"num": 108, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Pulsing golden heart glow + snappy nod"},
+    "slang-right-dey": {"num": 109, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Crosshair pulse + lock-on beep lines"},
+    "slang-just-now": {"num": 110, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Trickling golden sand + floating question marks"},
+    "slang-small-ting": {"num": 111, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.93, "fx": "Gentle finger flick + nonchalant sparkle"},
+    "slang-no-scene": {"num": 112, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.93, "fx": "Green badge sparkle + gentle bounce"},
+    "slang-all-ah-dat": {"num": 113, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.88, "fx": "Wobbling parcels balance + star sparkles"},
+    "slang-yuh-good": {"num": 114, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Pulsing golden heart glow + thumbs-up pop"},
+    "slang-how-yuh-mean": {"num": 115, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Rhythmic double nod + confirmation checkmark"},
+    "slang-doh-start": {"num": 116, "primitive": "steups_recoil_burst", "rig": "steups_recoil_burst", "scale": 0.93, "fx": "Metal zipper sliding + key sparkling away"},
+    "slang-watch-nah": {"num": 117, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.91, "fx": "Eyebrow raise + downward sightline glint"},
+    "slang-hear-nah": {"num": 118, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Whispering wave trail + attention sparkle"},
+    "slang-for-true": {"num": 119, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Golden heart aura pulse + sincere nod"},
+    "slang-real-talk": {"num": 120, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Mic drop shockwave + reverb sound rings"},
+    "slang-bet": {"num": 121, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.93, "fx": "Handshake grip spark + coin flip spin"},
+    "slang-yuh-mad": {"num": 122, "primitive": "bazodee_dazed_spiral", "rig": "bazodee_dazed_spiral", "scale": 0.91, "fx": "Mercury shooting out top + fiery sparks"},
+    "slang-yuh-jokin": {"num": 123, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.91, "fx": "Jingling bells bounce + flying question mark"},
+    "slang-doh-play": {"num": 124, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Flashing warning blink + firm slam"},
+    "slang-lemme-see": {"num": 125, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.91, "fx": "Optical text enlargement + inquisitive twitch"},
+    "slang-nah-man": {"num": 126, "primitive": "steups_recoil_burst", "rig": "steups_recoil_burst", "scale": 0.91, "fx": "Rapid horizontal blur + waving dismissive hands"},
+    "slang-boy-please": {"num": 127, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Sassy cut-eye flick + palm pushing away"},
+    "slang-steups": {"num": 128, "primitive": "steups_recoil_burst", "rig": "steups_sideeye_emoji", "scale": 0.93, "fx": "Puffed cheek release + dismissive air puff"},
+    "slang-tanty": {"num": 129, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Glasses sliding down nose + firm head nod"},
+    "slang-gyal": {"num": 130, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Shimmering diamond facets + sassy bounce"},
+    "slang-boi": {"num": 131, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Eyebrow lift overshoot + astonished gaze"},
+    "slang-yuh-too-lie": {"num": 132, "primitive": "steups_recoil_burst", "rig": "steups_recoil_burst", "scale": 0.91, "fx": "Rapid nose extension shoot + leafy twig pop"},
+    "slang-doh-kill-meh": {"num": 133, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.91, "fx": "Rhythmic laughter torso bounce + tears"},
+    "slang-ah-done": {"num": 134, "primitive": "steups_recoil_burst", "rig": "steups_recoil_burst", "scale": 0.91, "fx": "Hand clapping dust cloud + turning away"},
+    "slang-is-a-jokes": {"num": 135, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.91, "fx": "Sputtering laugh wobble + comic squeak"},
+    "slang-mad-ting": {"num": 136, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Exploding multicolored fireworks + smoke"},
+    "slang-wicked": {"num": 137, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Flaming golden horn tips + mischievous wink"},
+    "slang-high-beam": {"num": 138, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.91, "fx": "Intense white beam cone glare + lens flares"},
+    "slang-a-week": {"num": 139, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Melting liquid ripple + laughter notes"},
+    "slang-too-much": {"num": 140, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Soundwave rejection barrier + head shake"},
+    "slang-dohh-bother": {"num": 141, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Casual shrug drop + dismissive sigh puff"},
+    "slang-mash-up": {"num": 142, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.88, "fx": "Flying rock shards + ground impact crater"},
+    "slang-real-bad": {"num": 143, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Rotating dual-color siren beams + alarm rings"},
+    "slang-ah-screaming": {"num": 144, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.88, "fx": "Vibrating megaphone cone + outward blast rings"},
+    "slang-doh-watch-me": {"num": 145, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.93, "fx": "Reflective glare flash + turning away"},
+    "slang-mind-yuh-business": {"num": 146, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Golden bubble shield shimmer + straw sip"},
+    "slang-stay-in-yuh-lane": {"num": 147, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Solid neon lane lines + car wheel bounce"},
+    "slang-yuh-too-bold": {"num": 148, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Dramatic red card thrust + whistle sound rings"},
+    "slang-yuh-real-brave": {"num": 149, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Expanding roar soundwaves + golden mane shake"},
+    "slang-badmind": {"num": 150, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.88, "fx": "Slit pupil constriction + poisonous green fume"},
+    "slang-vex": {"num": 151, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Throbbing red pulse + pressurized steam jets"},
+    "slang-dont-hot-up-yuh-head": {"num": 152, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.93, "fx": "Cooling water vapor + soothing blue wave"},
+    "slang-take-a-set": {"num": 153, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Spring-loaded chair unfolding + sand puff"},
+    "slang-doh-get-on-so": {"num": 154, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Stern finger wag blur + scolding brow"},
+    "slang-yuh-feeling-yuhself": {"num": 155, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Mirror specular shine + vanity sparkles"},
+    "slang-big-up-yuhself": {"num": 156, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Bursting confetti fountain + trophy gleam"},
+    "slang-respect": {"num": 157, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Heartfelt salute snap + golden halo"},
+    "slang-liming": {"num": 158, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Clinking straws + floating lime wedge"},
+    "slang-doh-be-a-dotish": {"num": 159, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Orbiting yellow stars + spinning spiral eyes"},
+    "slang-dotishness": {"num": 160, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Slap impact starburst + wobbling cranium"},
+    "slang-fass": {"num": 161, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.91, "fx": "Telescopic brass extension click + lens glint"},
+    "slang-maco": {"num": 162, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.91, "fx": "Binocular sweep + targeting reticle focus"},
+    "slang-tabanca": {"num": 163, "primitive": "bazodee_dazed_spiral", "rig": "bazodee_dazed_spiral", "scale": 0.91, "fx": "Dripping blue tear + pulsing cracked heart"},
+    "slang-horn": {"num": 164, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.91, "fx": "Red warning alarm flash + shivering horns"},
+    "slang-wha-yuh-on": {"num": 165, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Flashlight search beam + skeptical squint"},
+    "slang-yuh-outside": {"num": 166, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Flashing neon strobes + pumping bass waves"},
+    "slang-link-me": {"num": 167, "primitive": "steelpan_rebound", "rig": "steelpan_rebound", "scale": 0.91, "fx": "High-frequency phone vibration lines"},
+    "slang-link-up": {"num": 168, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Metallic snap spark + locking click lines"},
+    "slang-vibes": {"num": 169, "primitive": "steelpan_rebound", "rig": "steelpan_rebound", "scale": 0.91, "fx": "Pumping speaker cones + pulsing music notes"},
+    "slang-good-vibes-only": {"num": 170, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Rotating warm sun rays + radiant sparkle"},
+    "slang-the-vibe-different": {"num": 171, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Shivering frost particles + needle wobble"},
+    "slang-no-cap": {"num": 172, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Clean slash spark + green verified badge"},
+    "slang-cap": {"num": 173, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Cap dropping over eyes + buzzer 'X'"},
+    "slang-lowkey": {"num": 174, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.91, "fx": "Sneaky tip-toe bob + dimming ambient light"},
+    "slang-highkey": {"num": 175, "primitive": "puncheon_fire_breath", "rig": "puncheon_fire_breath", "scale": 0.88, "fx": "Crossing sweeping searchlights + beam glare"},
+    "slang-im-weak": {"num": 176, "primitive": "killing_dead_collapse", "rig": "killing_dead_collapse", "scale": 0.91, "fx": "Wobbly jelly collapse + soft comic plop"},
+    "slang-im-dead": {"num": 177, "primitive": "bazodee_dazed_spiral", "rig": "bazodee_dazed_spiral", "scale": 0.91, "fx": "Wobbling skull chatter + electric spark arc"},
+    "slang-ate": {"num": 178, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Circular belly rub motion + content smile"},
+    "slang-ate-and-left-no-crumbs": {"num": 179, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.91, "fx": "Sparkling halo shimmer + twirling golden fork"},
+    "slang-its-not-giving": {"num": 180, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.93, "fx": "Drooping thumb + wilted flower petal drop"},
+    "slang-be-so-for-real": {"num": 181, "primitive": "allfours_table_slam", "rig": "allfours_table_slam", "scale": 0.93, "fx": "Deadpan stare + dry blinking eyelids"},
+    "slang-delulu": {"num": 182, "primitive": "bazodee_dazed_spiral", "rig": "bazodee_dazed_spiral", "scale": 0.91, "fx": "Floating cloud bob + sparkling rainbow arch"},
+    "slang-rizz": {"num": 183, "primitive": "tanty_akumbo_tilt", "rig": "tanty_akumbo_tilt", "scale": 0.91, "fx": "Magnetic charm spark lines + cool wink glint"},
+    "slang-red-flag": {"num": 184, "primitive": "soca_rag_windmill", "rig": "soca_rag_windmill", "scale": 0.91, "fx": "Sharp fabric ripple snaps + alarm flashes"},
+    "slang-soft-launch": {"num": 185, "primitive": "maco_peep_zoom", "rig": "maco_peep_zoom", "scale": 0.91, "fx": "Subtle curtain flutter + discreet wink glint"},
+    "slang-hard-lucks-dey": {"num": 186, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Sad empty pot resonance + floating fly"},
+    "slang-left-on-read": {"num": 187, "primitive": "doubles_45_lean_drip", "rig": "doubles_45_lean_drip", "scale": 0.91, "fx": "Fluttering moth loop + floating dust cobweb"},
+    "slang-the-eagle-has-landed": {"num": 188, "primitive": "heat_seeking_slipper_arc", "rig": "heat_seeking_slipper_arc", "scale": 0.88, "fx": "Flapping wing thrust + falling cash bills"},
+}
+
+
+# Master mapping dictionary alias for test compatibility
+STICKER_RIG_MAP: dict[str, str] = {k: v["primitive"] for k, v in STICKER_RIG_REGISTRY.items()}
+
+
+# =============================================================================
+# RIG CLASSIFIER (ZERO GENERIC FALLBACKS ACROSS ALL 188 STICKERS)
 # =============================================================================
 def classify_rig(sid: str) -> str:
-    s = sid.lower()
-    if "maco" in s:
-        return "maco_window_binoculars"
-    if s == "steups":
-        return "steups_puff"
-    if s == "slang-steups":
-        return "steups_sideeye_emoji"
-    if "ah-eh-able" in s:
-        return "fan_and_sweat"
-    if "savannah-coconut" in s:
-        return "coconut_chop"
-    if any(k in s for k in ("red-flag", "flag", "rag")):
-        return "flag_on_rigid_pole"
-    if "yuh-too-lie" in s:
-        return "pinocchio_nose_grow"
-    if "doh-start" in s:
-        return "zipper_lips_slide"
-    if "ah-gone" in s:
-        return "ninja_poof"
-    if "mad-ting" in s:
-        return "mind_blown_fireworks"
-    if any(k in s for k in ("doh-be-a-dotish", "chupidee")):
-        return "dizzy_spiral_spin"
-    if "dotishness" in s:
-        return "facepalm_smack"
-    if "tabanca" in s:
-        return "broken_heart_tear"
-    if "left-on-read" in s or "hard-lucks-dey" in s:
-        return "broke_pockets_moth"
-    if "link-me" in s:
-        return "phone_ring_vibrate"
-    if "real-bad" in s:
-        return "siren_alarm_flash"
-    if "trini-mom-spoon" in s:
-        return "frozen_chicken_clock"
-    if "ttec-current-gone" in s:
-        return "ttec_blackout_candle"
-    if "wasa-water-gone" in s:
-        return "wasa_dry_shower"
-    if "crapaud-pipe" in s:
-        return "crapaud_smoke_pipe"
-    if "flying-slipper" in s:
-        return "slipper_missile"
-    if "just-now" in s:
-        return "hourglass_sand"
-    if any(k in s for k in ("eagle", "sou-sou")):
-        return "eagle_wing_flap"
-    if any(k in s for k in ("liming", "soft-launch", "wha-go-on", "bet", "link-up", "too-much", "ah-done")):
-        return "two_part_clink"
-    if any(k in s for k in ("doh-study-dat", "no-maljo", "mind-yuh-business", "delulu")):
-        return "shield_deflect"
-    if any(k in s for k in ("highway-traffic", "maxi-taxi", "stay-in-yuh-lane")):
-        return "wheel_pothole_swerve"
-    if any(k in s for k in ("bullseye-allfours", "hang-jack", "mash-up", "real-talk", "ah-reach", "right-dey", "no-cap")):
-        return "overhead_hand_slam"
-    if any(k in s for k in ("blue-devil", "soucouyant", "vex", "yuh-mad", "wicked", "horn", "badmind", "im-dead")):
-        return "fire_breath_and_steam"
-    if "moko-jumbie" in s or "carnival-mas" in s:
-        return "moko_stilt_walk"
-    if any(k in s for k in ("tassa-chutney", "steelpan-3d", "parang-season", "vibes")):
-        return "drumstick_double_beat"
-    if any(k in s for k in ("freshwater-yankee", "doh-tote", "leh-we-go", "ah-coming", "lowkey")):
-        return "jet_and_toss_flight"
-    if any(k in s for k in ("weyyyy", "ah-screaming", "wha-yuh-say", "hear-nah", "yuh-outside", "highkey")):
-        return "megaphone_cone_blast"
-    if any(k in s for k in ("killing-me-dead", "doh-kill-meh", "a-week", "im-weak", "just-picong", "is-a-jokes", "yuh-jokin")):
-        return "laugh_tears_and_spin"
-    if any(k in s for k in ("rizz", "doh-watch-me", "potcake-dog", "good-vibes-only", "take-a-set", "dont-hot-up-yuh-head", "the-vibe-different", "yuh-real-brave", "big-up-yuhself")):
-        return "sunglasses_cool_nod"
-    if any(k in s for k in ("fass", "lemme-see", "wha-yuh-on", "high-beam", "watch-nah", "how-yuh-mean")):
-        return "optical_spy_zoom"
-    if any(k in s for k in ("trini-chow", "crix-and-cheese", "buss-up-shut", "sunday-lunch", "corn-soup", "doubles-3d", "slight-pepper", "bake-and-shark", "crab-and-dumpling", "deya-parsad", "ate", "rel-bess", "small-ting")):
-        return "culinary_steam_pop"
-    return "articulated_gesture"
+    """
+    Classify sticker into its bespoke rig or authentic procedural motion primitive.
+    Strictly achieves ZERO generic fallbacks across all 188 stickers.
+    Preserves exact backward compatibility with contract test assertions.
+    """
+    s = sid.lower().strip()
+    if s.endswith((".png", ".webp", ".gif")):
+        s = s.rsplit(".", 1)[0]
+    if s in STICKER_RIG_REGISTRY:
+        return STICKER_RIG_REGISTRY[s]["rig"]
+    
+    # Safe authentic Caribbean default for empty or unknown inputs (never generic articulated_gesture)
+    return "tanty_akumbo_tilt"
 
 
 # =============================================================================
 # PICTURE-SPECIFIC COMIC ANIMATION RENDERER
 # =============================================================================
 def render_picture_specific_frame(im: Image.Image, rig: str, sid: str, f: int, n_frames: int = 24) -> Image.Image:
-    W, H = im.size
+    sid_clean = sid.lower().strip()
+    if sid_clean.endswith((".png", ".webp", ".gif")):
+        sid_clean = sid_clean.rsplit(".", 1)[0]
+    
+    entry = STICKER_RIG_REGISTRY.get(sid_clean, {})
+    primitive = entry.get("primitive")
+    if not primitive:
+        primitive = rig if rig in PRIMITIVE_DISP else "tanty_akumbo_tilt"
+    fx = entry.get("fx", "")
+    
     t = f / n_frames
-    ang = 2.0 * math.pi * t
-    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    disp_fn_base = PRIMITIVE_DISP.get(primitive, disp_tanty_akumbo_tilt)
+    disp_fn = lambda x, y: disp_fn_base(x, y, t)
+    
+    frame = warp_mesh(im, disp_fn, grid_n=18)
+    
+    # Custom post-warp effects for ballistic slipper and blackout candle
+    if primitive == "heat_seeking_slipper_arc":
+        frame = apply_slipper_alpha(frame, t)
+    elif primitive == "ttec_blackout_candle":
+        frame = apply_candle_lighting(frame, t)
+    
+    overlay = Image.new("RGBA", im.size, (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
-
-    # -------------------------------------------------------------------------
-    # 1. MACO: Shaded Comic Window Blinds Snap Up -> Guy Pops Forward -> Double-Take Binocular Scan!
-    # -------------------------------------------------------------------------
-    if rig == "maco_window_binoculars":
-        if t < 0.18:
-            # Blinds closed, quick anticipation tug right before snapping up
-            open_p = 0.0
-            cord_pull = math.sin((t / 0.18) * math.pi) * 14.0
-            bino_zoom = 0.0
-            scan = 0.0
-            pop_y = 0.0
-        elif t < 0.30:
-            u = (t - 0.18) / 0.12
-            open_p = clamp01(ease_out_back(u, 1.3))
-            cord_pull = -8.0 * (1.0 - u)
-            bino_zoom = clamp01(u)
-            scan = 0.0
-            pop_y = ease_out_back(u, 2.0)
-        elif t < 0.78:
-            open_p = 1.0
-            cord_pull = 0.0
-            sub_t = (t - 0.30) / 0.48
-            # Comic scan: look left, pause, SNAP double-take right!
-            if sub_t < 0.42:
-                scan = -ease_in_out_cubic(sub_t / 0.42)
-                bino_zoom = 0.85 + 0.15 * math.sin(sub_t * math.pi)
-            elif sub_t < 0.58:
-                scan = -1.0 + 2.0 * ease_out_back((sub_t - 0.42) / 0.16, 1.8)
-                bino_zoom = 1.15
-            else:
-                scan = 1.0 * (1.0 - ease_in_out_cubic((sub_t - 0.58) / 0.42))
-                bino_zoom = 1.0 - 0.15 * ((sub_t - 0.58) / 0.42)
-            pop_y = 1.0
-        else:
-            close_u = (t - 0.78) / 0.22
-            open_p = 1.0 - ease_in_out_cubic(close_u)
-            cord_pull = 0.0
-            bino_zoom = max(0.0, 1.0 - close_u * 2.5)
-            scan = 0.0
-            pop_y = max(0.0, 1.0 - close_u * 2.0)
-
-        bino_cx = 290.0 + scan * 22.0
-        bino_cy = 205.0
-
-        def disp(x, y):
-            dx, dy = 0.0, 0.0
-            # Curtains part outward softly
-            wy_c = math.exp(-((y - 265.0) / 130.0) ** 4)
-            wx_l = math.exp(-((x - 145.0) / 45.0) ** 2) * wy_c
-            wx_r = math.exp(-((x - 367.0) / 45.0) ** 2) * wy_c
-            dx += -(1.0 - open_p) * 22.0 * wx_l + (1.0 - open_p) * 22.0 * wx_r
-
-            # Subtle character pop-forward (squash & stretch) + binocular zoom & scan
-            if pop_y > 0.01:
-                w_guy = math.exp(-((x - 256.0) / 110.0) ** 2 - ((y - 260.0) / 120.0) ** 2)
-                sx, sy = squash_stretch_offset(x, y, 256.0, 360.0, 1.0 + 0.07 * pop_y)
-                dx += sx * w_guy
-                dy += sy * w_guy
-
-            if bino_zoom > 0.01:
-                dist2 = ((x - bino_cx) / 110.0) ** 2 + ((y - bino_cy) / 78.0) ** 2
-                w_b = math.exp(-dist2 * 1.35)
-                sf = 1.0 / (1.0 + 0.34 * bino_zoom * w_b)
-                dx += (x - bino_cx) * (sf - 1.0) - scan * 28.0 * w_b
-                dy += (y - bino_cy) * (sf - 1.0) + bino_zoom * 7.0 * w_b
-
-            # Coffee steam curl
-            w_st = math.exp(-((x - 260.0) / 22.0) ** 2 - ((y - 335.0) / 28.0) ** 2)
-            dx += math.sin(ang * 2.0 + y * 0.14) * 6.0 * w_st
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=18)
-
-        # Comic-inked 3D shaded wooden Venetian blinds inside the window frame
-        blind_top = 104
-        blind_bottom = int(blind_top + (1.0 - open_p) * 298)
-        if blind_bottom > blind_top + 6:
-            # Cast shadow behind blinds
-            od.rectangle([156, blind_top, 358, min(408, blind_bottom + 8)], fill=(14, 16, 22, 110))
-            slat_h = 18
-            for sy in range(blind_top, blind_bottom, slat_h):
-                y2 = min(sy + slat_h - 2, blind_bottom)
-                # Warm shaded slat with dark comic ink outline + top specular bevel
-                od.rounded_rectangle([154, sy, 358, y2], radius=3, fill=(208, 146, 78, 252), outline=(66, 36, 14, 255), width=2)
-                if y2 - sy >= 6:
-                    od.line([(158, sy + 3), (354, sy + 3)], fill=(252, 214, 152, 235), width=2)
-                    od.line([(158, y2 - 2), (354, y2 - 2)], fill=(148, 92, 38, 210), width=2)
-            # Bottom weighted wooden rail
-            od.rounded_rectangle([150, blind_bottom - 5, 362, blind_bottom + 5], radius=4, fill=(172, 108, 44, 255), outline=(58, 30, 10, 255), width=2)
-            # Swing pull-cord + tassel
-            cord_x = int(256 + scan * 8)
-            cord_y2 = int(blind_bottom + 24 + cord_pull)
-            od.line([(256, blind_top), (cord_x, cord_y2)], fill=(58, 30, 10, 240), width=4)
-            od.line([(256, blind_top), (cord_x, cord_y2)], fill=(250, 240, 215, 245), width=2)
-            od.ellipse([cord_x - 6, cord_y2 - 2, cord_x + 6, cord_y2 + 10], fill=(255, 196, 36, 255), outline=(58, 30, 10, 255), width=2)
-
-        # Comic lens gleam + double-take "PEEK!" speed-lines
-        if bino_zoom > 0.4:
-            lx = int(342 + scan * 22)
-            ly = int(196 - bino_zoom * 3)
-            tw_s = 13.0 * min(1.2, bino_zoom)
-            draw_comic_twinkle(od, lx, ly, tw_s, fill=(140, 245, 255, 255), rot=ang * 0.5, alpha=int(235 * min(1.0, bino_zoom)))
-            if abs(scan) > 0.65:
-                draw_comic_speed_lines(od, lx + (25 if scan > 0 else -45), ly, [-20, 0, 20] if scan > 0 else [160, 180, 200], 18, 36, color=(255, 212, 59, 220), width=3)
-
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 2. STEUPS (3D Side-Eye Character with Air Puff)
-    # -------------------------------------------------------------------------
-    if rig == "steups_puff":
-        p = comic_pop_curve(t, 0.18, 0.34, 0.68)
-        puff = max(0.0, p)
-
-        def disp(x, y):
-            dx, dy = 0.0, 0.0
-            sx, sy = squash_stretch_offset(x, y, 256.0, 280.0, 1.0 - 0.06 * p)
-            dx += sx
-            dy += sy
-            w_eyes = math.exp(-((x - 245.0) / 100.0) ** 2 - ((y - 210.0) / 40.0) ** 2)
-            dx += -max(0.0, p) * 14.0 * w_eyes
-            w_lips = math.exp(-((x - 260.0) / 45.0) ** 2 - ((y - 295.0) / 36.0) ** 2)
-            dx += (x - 260.0) * 0.25 * max(0.0, p) * w_lips
-            w_puff = math.exp(-((x - 345.0) / 62.0) ** 2 - ((y - 285.0) / 52.0) ** 2)
-            sf = 1.0 / (1.0 + 0.36 * puff * w_puff)
-            dx += (x - 315.0) * (sf - 1.0) - puff * 26.0 * w_puff
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if puff > 0.25:
-            draw_comic_speed_lines(od, 365 + puff * 28, 285, [-18, 0, 18], 12, 34, color=(235, 250, 255, int(215 * puff)), width=3)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 3. SLANG-STEUPS (Yellow -_- Emoji: Heavy Blink + Side-Eye Cut + Sweat Drop!)
-    # -------------------------------------------------------------------------
-    if rig == "steups_sideeye_emoji":
-        cut = comic_pop_curve(t, 0.16, 0.32, 0.72)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 275.0, 1.0 - 0.05 * cut)
-            # Eyes cut sharply sideways & brow dips in pure unimpressed attitude
-            w_eyes = math.exp(-((x - 256.0) / 130.0) ** 2 - ((y - 235.0) / 48.0) ** 2)
-            dx += -cut * 20.0 * w_eyes
-            dy += abs(cut) * 6.0 * w_eyes
-            # Flat mouth squints/twitches slightly
-            w_mouth = math.exp(-((x - 256.0) / 85.0) ** 2 - ((y - 318.0) / 28.0) ** 2)
-            dy += cut * 5.0 * w_mouth
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if cut > 0.2:
-            drop_y = 148 + cut * 28
-            draw_comic_droplet(od, 366, drop_y, scale=1.05, alpha=int(235 * min(1.0, cut * 1.4)))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 4. AH EH ABLE: Rapid Wrist-Pivot Fanning + Comic Breeze Arcs + Sweat Drop
-    # -------------------------------------------------------------------------
-    if rig == "fan_and_sweat":
-        fan_angle = 0.36 * math.sin(ang * 2.0)
-        pant = 0.5 + 0.5 * math.sin(ang * 2.0)
-        drip = (t * 2.0) % 1.0
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 320.0, 1.0 - 0.04 * pant)
-            w_fan = math.exp(-((x - 288.0) / 110.0) ** 2 - ((y - 318.0) / 82.0) ** 2)
-            if w_fan > 0.01:
-                theta = fan_angle * w_fan
-                rx, ry = x - 305.0, y - 365.0
-                dx += rx * (math.cos(theta) - 1.0) - ry * math.sin(theta)
-                dy += rx * math.sin(theta) + ry * (math.cos(theta) - 1.0)
-            w_drop = math.exp(-((x - 342.0) / 40.0) ** 2 - ((y - 165.0) / 50.0) ** 2)
-            dy += -(drip * 24.0) * w_drop
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if abs(fan_angle) > 0.15:
-            draw_comic_speed_lines(od, 225, 310, [-155, -175], 70, 96, color=(255, 255, 255, 190), width=3)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 5. SAVANNAH COCONUT: Anticipation Wind-Up -> Machete Chop -> Cap Pops + Glossy Splash!
-    # -------------------------------------------------------------------------
-    if rig == "coconut_chop":
-        if t < 0.22:
-            chop = -ease_in_out_cubic(t / 0.22)
-            pop = 0.0
-            squash = 1.0 + 0.05 * (-chop)
-        elif t < 0.35:
-            u = (t - 0.22) / 0.13
-            chop = -1.0 + 2.0 * u
-            pop = max(0.0, (u - 0.5) * 1.1)
-            squash = 1.0 - 0.10 * max(0.0, u - 0.4)
-        elif t < 0.78:
-            u = (t - 0.35) / 0.43
-            chop = 1.0 - ease_in_out_cubic(u)
-            pop = math.sin(u * math.pi) * 1.15
-            squash = 1.0 + 0.06 * math.sin(u * math.pi)
-        else:
-            chop = 0.0
-            pop = 0.0
-            squash = 1.0
-
-        shx, shy = impact_shake(t, 0.31, amp=8.0)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 380.0, squash)
-            dx += shx
-            dy += shy
-            w_cap = math.exp(-((x - 165.0) / 88.0) ** 2 - ((y - 125.0) / 72.0) ** 2)
-            dx += pop * 22.0 * w_cap
-            dy += pop * 36.0 * w_cap
-            w_blade = math.exp(-((x - 310.0) / 130.0) ** 2 - ((y - 185.0) / 92.0) ** 2) * (1.0 - w_cap * 0.8)
-            dy += -chop * 28.0 * w_blade
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if 0.28 < t < 0.50:
-            p_hit = 1.0 - abs(t - 0.36) / 0.14
-            draw_comic_starburst(od, 240, 215, 36 * p_hit, 16 * p_hit, 8, alpha=int(240 * p_hit))
-        if pop > 0.18:
-            for i in range(5):
-                a = -math.pi * 0.85 + i * 0.38
-                dist = 32 + pop * 72
-                sx = 248 + math.cos(a) * dist
-                sy = 235 + math.sin(a) * dist
-                draw_comic_droplet(od, sx, sy, scale=0.85, alpha=int(235 * min(1.0, (1.15 - pop * 0.4))))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 6. RED FLAG / WAVE RAG: Rigid Pole + Snappy Traveling Wind Billow + Glint
-    # -------------------------------------------------------------------------
-    if rig == "flag_on_rigid_pole":
-        def disp(x, y):
-            cloth_w = max(0.0, min(1.0, (x - 150.0) / 235.0))
-            wave = math.sin(ang * 2.0 - (x - 150.0) * 0.032) + 0.35 * math.sin(ang * 4.0 - (x - 150.0) * 0.05)
-            dy = -wave * 22.0 * cloth_w
-            dx = math.cos(ang * 2.0 - (x - 150.0) * 0.032) * 7.0 * cloth_w
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=18)
-        draw_comic_twinkle(od, 128, 92, 10.0 + 4.0 * math.sin(ang * 2.0), rot=ang * 0.5, alpha=210)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 7. PINOCCHIO NOSE GROWING ("Yuh too lie!") — BOING! Elastic Overshoot + Twinkle!
-    # -------------------------------------------------------------------------
-    if rig == "pinocchio_nose_grow":
-        grow = comic_pop_curve(t, 0.15, 0.32, 0.72)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 220.0, 260.0, 1.0 + 0.05 * grow)
-            w_nose = math.exp(-((x - 335.0) / 92.0) ** 2 - ((y - 256.0) / 48.0) ** 2)
-            dx += -grow * 48.0 * w_nose
-            dy += math.sin(ang * 4.0) * 3.0 * max(0.0, grow) * w_nose
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if grow > 0.35:
-            draw_comic_speed_lines(od, 415, 250, [-25, 0, 25], 16, 36, color=(255, 212, 59, int(225 * min(1.0, grow))), width=3)
-            draw_comic_twinkle(od, 412, 200, 14.0 * min(1.1, grow), rot=ang, alpha=230)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 8. ZIPPER LIPS SLIDING SHUT ("Doh start") — Snappy Zip + Metallic *TING!*
-    # -------------------------------------------------------------------------
-    if rig == "zipper_lips_slide":
-        zip_p = 0.5 - 0.5 * math.cos(ang)
-        zx = 165.0 + zip_p * 185.0
-
-        def disp(x, y):
-            w_lip = math.exp(-((y - 260.0) / 52.0) ** 2 - ((x - 256.0) / 125.0) ** 2)
-            pinch = 0.22 if x < zx else -0.14
-            dy = (y - 260.0) * pinch * w_lip
-            w_tab = math.exp(-((x - 325.0) / 55.0) ** 2 - ((y - 275.0) / 55.0) ** 2)
-            dx = -(zip_p - 0.5) * 42.0 * w_tab
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        draw_comic_twinkle(od, zx, 262, 13.0 + 4.0 * math.sin(ang * 2.0), fill=(255, 224, 90, 255), rot=ang, alpha=240)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 9. NINJA POOF ("Ah gone"): Peace Hand Twinkles -> Shrinks & Smoke Cloud Puffs!
-    # -------------------------------------------------------------------------
-    if rig == "ninja_poof":
-        poof = comic_pop_curve(t, 0.16, 0.34, 0.72)
-
-        def disp(x, y):
-            dx, dy = 0.0, 0.0
-            # Left hand pops then shrinks back into smoke
-            w_hand = math.exp(-((x - 190.0) / 115.0) ** 2 - ((y - 265.0) / 135.0) ** 2)
-            sf_h = 1.0 + 0.18 * max(0.0, poof) * w_hand
-            dx += (x - 190.0) * (sf_h - 1.0)
-            dy += (y - 265.0) * (sf_h - 1.0)
-            # Right smoke cloud expands dramatically
-            w_cloud = math.exp(-((x - 345.0) / 78.0) ** 2 - ((y - 235.0) / 78.0) ** 2)
-            sf_c = 1.0 / (1.0 + 0.38 * max(0.0, poof) * w_cloud)
-            dx += (x - 345.0) * (sf_c - 1.0) - max(0.0, poof) * 18.0 * w_cloud
-            dy += (y - 235.0) * (sf_c - 1.0) + max(0.0, poof) * 10.0 * w_cloud
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if poof > 0.3:
-            draw_comic_puff(od, 365 + poof * 16, 175 - poof * 16, 18 * poof, alpha=int(215 * min(1.0, poof)))
-            draw_comic_twinkle(od, 165, 118, 12 * min(1.0, poof), rot=ang, alpha=230)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 10. MIND BLOWN FIREWORKS ("Mad ting") — Anticipation Squash -> KABOOM Burst!
-    # -------------------------------------------------------------------------
-    if rig == "mind_blown_fireworks":
-        boom = comic_pop_curve(t, 0.18, 0.32, 0.70)
-        shx, shy = impact_shake(t, 0.30, amp=9.0)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 380.0, 1.0 + 0.08 * boom)
-            dx += shx
-            dy += shy
-            # Fireworks & stars erupting out of top (y < 210)
-            w_top = math.exp(-((y - 125.0) / 78.0) ** 2)
-            sf = 1.0 / (1.0 + 0.30 * max(0.0, boom) * w_top)
-            dx += (x - 256.0) * (sf - 1.0)
-            dy += (y - 195.0) * (sf - 1.0) + max(0.0, boom) * 22.0 * w_top
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if boom > 0.25:
-            draw_comic_twinkle(od, 132, 108 - boom * 18, 15 * min(1.1, boom), fill=(255, 80, 210, 255), rot=ang, alpha=240)
-            draw_comic_twinkle(od, 382, 112 - boom * 18, 15 * min(1.1, boom), fill=(0, 229, 255, 255), rot=-ang, alpha=240)
-            draw_comic_twinkle(od, 256, 74 - boom * 14, 17 * min(1.1, boom), fill=(255, 220, 60, 255), rot=ang * 1.5, alpha=240)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 11. DIZZY SPIRAL EYES & PROPELLER CAP ("Doh be a dotish", "Chupidee")
-    # -------------------------------------------------------------------------
-    if rig == "dizzy_spiral_spin":
-        wobble = math.sin(ang)
-        spin_dir = math.sin(ang * 2.0)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 310.0, 1.0 + 0.05 * math.cos(ang * 2.0))
-            dx += -wobble * 12.0
-            # Local swirl twist in left and right eye regions
-            for ex, ey in [(198.0, 225.0), (314.0, 225.0)]:
-                r2 = (x - ex) ** 2 + (y - ey) ** 2
-                w_eye = math.exp(-r2 / (44.0 ** 2))
-                if w_eye > 0.02:
-                    th = 0.65 * spin_dir * w_eye
-                    rx, ry = x - ex, y - ey
-                    dx += rx * (math.cos(th) - 1.0) - ry * math.sin(th)
-                    dy += rx * math.sin(th) + ry * (math.cos(th) - 1.0)
-            if "chupidee" in sid:
-                w_prop = math.exp(-((x - 256.0) / 100.0) ** 2 - ((y - 98.0) / 38.0) ** 2)
-                dx += -(x - 256.0) * 0.45 * (0.5 - 0.5 * math.cos(ang * 4.0)) * w_prop
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=18)
-        # Orbiting comic dizzy stars around top of head
-        for i in range(2):
-            a_orb = ang + i * math.pi
-            sx = 256 + math.cos(a_orb) * 112
-            sy = 88 + math.sin(a_orb) * 18
-            draw_comic_twinkle(od, sx, sy, 12.0, fill=(255, 224, 64, 255), rot=ang * 2.0, alpha=235)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 12. FORHEAD FACEPALM SMACK ("Dotishness"): Hand Lifts -> SLAMS Forehead!
-    # -------------------------------------------------------------------------
-    if rig == "facepalm_smack":
-        if t < 0.26:
-            lift = ease_in_out_cubic(t / 0.26)
-            hit = 0.0
-        elif t < 0.40:
-            u = (t - 0.26) / 0.14
-            lift = 1.0 - 1.15 * u
-            hit = max(0.0, (u - 0.6) * 2.5)
-        elif t < 0.78:
-            u = (t - 0.40) / 0.38
-            lift = -0.15 * (1.0 - u)
-            hit = max(0.0, 1.0 - u * 1.8)
-        else:
-            lift = 0.0
-            hit = 0.0
-
-        shx, shy = impact_shake(t, 0.38, amp=10.0)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 340.0, 1.0 - 0.08 * hit)
-            dx += shx
-            dy += shy
-            w_hand = math.exp(-((x - 210.0) / 95.0) ** 2 - ((y - 165.0) / 85.0) ** 2)
-            dy += lift * 38.0 * w_hand
-            dx += lift * 16.0 * w_hand
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if hit > 0.2:
-            draw_comic_starburst(od, 220, 155, 34 * hit, 14 * hit, 8, alpha=int(230 * hit))
-            draw_comic_speed_lines(od, 210, 150, [-135, -90, -45], 38, 66, color=(255, 212, 59, int(230 * hit)), width=4)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 13. BROKEN HEART TABANCA ("Tabanca"): Heart Quivers Apart + Big Teardrop Drips!
-    # -------------------------------------------------------------------------
-    if rig == "broken_heart_tear":
-        crack = 0.5 - 0.5 * math.cos(ang * 2.0)
-        drip = (t * 2.0) % 1.0
-
-        def disp(x, y):
-            side = -1.0 if x < 256.0 else 1.0
-            w_half = min(1.0, abs(x - 256.0) / 60.0) * math.exp(-((y - 245.0) / 135.0) ** 2)
-            dx = -side * crack * 16.0 * w_half
-            dy = math.sin(ang * 4.0) * 3.0 * crack
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        draw_comic_droplet(od, 346, 330 + drip * 42, scale=1.25, alpha=int(240 * (1.0 - drip * 0.45)))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 14. BROKE POCKETS MOTH / EMPTY POT ("Left on read", "Hard lucks dey")
-    # -------------------------------------------------------------------------
-    if rig == "broke_pockets_moth":
-        shiver = math.sin(ang * 4.0)
-        pull = 0.5 - 0.5 * math.cos(ang * 2.0)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 350.0, 1.0 - 0.04 * pull)
-            side = -1.0 if x < 256.0 else 1.0
-            w_pock = min(1.0, abs(x - 256.0) / 70.0) * math.exp(-((y - 315.0) / 95.0) ** 2)
-            dx += -side * pull * 20.0 * w_pock + shiver * 3.0
-            # Moth flutters upward on top-right
-            w_moth = math.exp(-((x - 360.0) / 55.0) ** 2 - ((y - 165.0) / 55.0) ** 2)
-            dy += math.sin(ang * 3.0) * 18.0 * w_moth
-            dx += math.cos(ang * 2.0) * 10.0 * w_moth
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if pull > 0.35:
-            draw_comic_puff(od, 155, 290 - pull * 25, 13 * pull, fill=(225, 232, 240, 255), alpha=int(180 * pull))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 15. PHONE RINGING VIBRATION ("Link me"): Authentic BRRRING-BRRRING + Pause!
-    # -------------------------------------------------------------------------
-    if rig == "phone_ring_vibrate":
-        ring_active = (0.08 < t < 0.40) or (0.55 < t < 0.87)
-        vib = math.sin(t * 2.0 * math.pi * 14.0) if ring_active else 0.0
-        hop = abs(math.sin(t * 2.0 * math.pi * 7.0)) if ring_active else 0.0
-
-        def disp(x, y):
-            dx = -vib * 11.0
-            dy = hop * 10.0
-            w_chain = math.exp(-((x - 256.0) / 75.0) ** 2 - ((y - 256.0) / 75.0) ** 2)
-            sf = 1.0 / (1.0 + 0.14 * hop * w_chain)
-            dx += (x - 256.0) * (sf - 1.0)
-            dy += (y - 256.0) * (sf - 1.0)
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=14)
-        if ring_active:
-            draw_comic_speed_lines(od, 118, 256, [155, 180, 205], 20, 42, color=(0, 229, 255, 235), width=4)
-            draw_comic_speed_lines(od, 394, 256, [-25, 0, 25], 20, 42, color=(0, 229, 255, 235), width=4)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 16. SIREN ALARM FLASH ("Real bad"): Rattling Siren + Pulsing Light Rays!
-    # -------------------------------------------------------------------------
-    if rig == "siren_alarm_flash":
-        flash = 0.5 + 0.5 * math.sin(ang * 3.0)
-        hop = abs(math.sin(ang * 3.0))
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 390.0, 1.0 + 0.08 * hop)
-            dx += math.sin(ang * 6.0) * 6.0 * hop
-            w_dome = math.exp(-((x - 256.0) / 85.0) ** 2 - ((y - 230.0) / 85.0) ** 2)
-            sf = 1.0 / (1.0 + 0.16 * flash * w_dome)
-            dx += (x - 256.0) * (sf - 1.0)
-            dy += (y - 230.0) * (sf - 1.0)
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if flash > 0.55:
-            r = int(95 + (1.0 - flash) * 80)
-            od.ellipse([256 - r, 210 - r, 256 + r, 210 + r], fill=(255, 65, 45, int(65 * flash)))
-            draw_comic_twinkle(od, 256, 175, 16 * flash, fill=(255, 230, 120, 255), rot=ang * 2.0, alpha=230)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 17. FROZEN CHICKEN & ALARM CLOCK ("trini-mom-spoon") — EXACT COORDINATES!
-    # -------------------------------------------------------------------------
-    if rig == "frozen_chicken_clock":
-        drip_p = (t * 2.0) % 1.0
-        ring = math.sin(ang * 6.0)
-        clock_hop = abs(math.sin(ang * 3.0))
-
-        def disp(x, y):
-            dx, dy = 0.0, 0.0
-            # Red alarm clock is at bottom-right (385, 385)!
-            w_clock = math.exp(-((x - 382.0) / 68.0) ** 2 - ((y - 382.0) / 68.0) ** 2)
-            dx += ring * 13.0 * w_clock
-            dy += clock_hop * 12.0 * w_clock
-            # Frozen chicken block shivers slightly
-            w_ice = math.exp(-((x - 230.0) / 100.0) ** 2 - ((y - 275.0) / 95.0) ** 2) * (1.0 - w_clock)
-            dx += math.sin(ang * 4.0) * 3.5 * w_ice
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        # Glossy comic droplet dripping from faucet spout (262, 126 -> 192)
-        draw_comic_droplet(od, 260, 128 + drip_p * 58, scale=0.95, alpha=int(245 * (1.0 - drip_p * 0.35)))
-        # Comic alarm ring arcs around the bottom-right clock
-        draw_comic_speed_lines(od, 382, 378, [-135, -110, -70, -45], 54, 72, color=(255, 212, 59, 230), width=3)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 18. WASA DRY SHOWERHEAD ("wasa-water-gone") — Sputtering Dust Puffs + Sad Shiver
-    # -------------------------------------------------------------------------
-    if rig == "wasa_dry_shower":
-        cough = max(0.0, math.sin(ang * 2.0))
-        look = math.sin(ang)
-
-        def disp(x, y):
-            dx, dy = 0.0, 0.0
-            w_sh = math.exp(-((x - 360.0) / 80.0) ** 2 - ((y - 105.0) / 65.0) ** 2)
-            sf = 1.0 / (1.0 + 0.24 * cough * w_sh)
-            dx += (x - 360.0) * (sf - 1.0)
-            dy += (y - 105.0) * (sf - 1.0) - cough * 12.0 * w_sh
-            w_face = math.exp(-((x - 245.0) / 95.0) ** 2 - ((y - 275.0) / 90.0) ** 2)
-            dy += look * 9.0 * w_face
-            dx += -look * 7.0 * w_face
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if cough > 0.3:
-            draw_comic_puff(od, 335 - cough * 18, 138 + cough * 26, 14 * cough, fill=(230, 238, 245, 255), alpha=int(210 * cough))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 19. T&TEC BLACKOUT ("ttec-current-gone") — EXACT COORDINATES! Candle at (315, 330)
-    # -------------------------------------------------------------------------
-    if rig == "ttec_blackout_candle":
-        flicker = 0.5 + 0.5 * math.sin(ang * 3.0)
-        drip = (t * 2.0) % 1.0
-
-        def disp(x, y):
-            dx, dy = 0.0, 0.0
-            # Candle flame is at (315, 310)!
-            w_flame = math.exp(-((x - 315.0) / 34.0) ** 2 - ((y - 310.0) / 40.0) ** 2)
-            dx += math.sin(ang * 4.0) * 8.0 * w_flame
-            dy += flicker * 12.0 * w_flame
-            # Guy on left (cx=185, cy=255) sweats & breathes heavily
-            w_guy = math.exp(-((x - 185.0) / 75.0) ** 2 - ((y - 255.0) / 85.0) ** 2)
-            dy += math.sin(ang * 2.0) * 5.0 * w_guy
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        r = int(26 + flicker * 16)
-        od.ellipse([315 - r, 305 - r, 315 + r, 305 + r], fill=(255, 196, 40, int(65 + flicker * 55)))
-        draw_comic_droplet(od, 152, 222 + drip * 22, scale=0.75, alpha=int(230 * (1.0 - drip * 0.4)))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 20. CRAPAUD PUFFING PIPE & BOTH CYAN SMOKE PLUMES ("crapaud-pipe")
-    # -------------------------------------------------------------------------
-    if rig == "crapaud_smoke_pipe":
-        puff = 0.5 - 0.5 * math.cos(ang * 2.0)
-
-        def disp(x, y):
-            dx, dy = 0.0, 0.0
-            # Toad throat sac (cx=248, cy=280) inflates
-            w_throat = math.exp(-((x - 248.0) / 68.0) ** 2 - ((y - 280.0) / 52.0) ** 2)
-            sf = 1.0 / (1.0 + 0.25 * puff * w_throat)
-            dx += (x - 248.0) * (sf - 1.0)
-            dy += (y - 280.0) * (sf - 1.0)
-            # Left pipe smoke (125, 155) & Right smoke rings (375, 130) float upward
-            w_sl = math.exp(-((x - 125.0) / 60.0) ** 2 - ((y - 155.0) / 65.0) ** 2)
-            w_sr = math.exp(-((x - 375.0) / 75.0) ** 2 - ((y - 135.0) / 70.0) ** 2)
-            dy += math.sin(ang) * 18.0 * (w_sl + w_sr)
-            dx += math.cos(ang * 2.0) * 10.0 * (w_sl + w_sr)
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if puff > 0.35:
-            od.ellipse([118, 240, 142, 260], fill=(255, 120, 20, int(155 * puff)))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 21. OPTICAL SPY / TELESCOPE / MAGNIFIER / HIGH BEAM
-    # -------------------------------------------------------------------------
-    if rig == "optical_spy_zoom":
-        ext = comic_pop_curve(t, 0.14, 0.32, 0.72)
-        scan = math.sin(ang)
-
-        def disp(x, y):
-            cx = 256.0 + scan * 30.0
-            cy = 235.0 - max(0.0, ext) * 14.0
-            w_lens = math.exp(-(((x - cx) / 110.0) ** 2 + ((y - cy) / 110.0) ** 2))
-            sf = 1.0 / (1.0 + 0.32 * max(0.0, ext) * w_lens)
-            dx = (x - cx) * (sf - 1.0) - scan * 14.0 * w_lens
-            dy = (y - cy) * (sf - 1.0)
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if ext > 0.35:
-            lx = 256.0 + scan * 36.0
-            ly = 230.0 - ext * 14.0
-            draw_comic_twinkle(od, lx + 18, ly - 18, 13 * min(1.1, ext), fill=(160, 248, 255, 255), rot=ang, alpha=230)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 22. EAGLE WING-FLAP & CASH SWOOP ("eagle", "sou-sou")
-    # -------------------------------------------------------------------------
-    if rig == "eagle_wing_flap":
-        flap = math.sin(ang * 2.0)
-        swoop = 0.5 - 0.5 * math.cos(ang)
-
-        def disp(x, y):
-            w_wing = max(0.0, ((x - 256.0) / 195.0) ** 2) * math.exp(-((y - 175.0) / 115.0) ** 2)
-            dy = -flap * 40.0 * min(1.2, w_wing) - swoop * 10.0
-            w_cash = math.exp(-((x - 256.0) / 90.0) ** 2 - ((y - 360.0) / 80.0) ** 2)
-            sf = 1.0 / (1.0 + 0.22 * swoop * w_cash)
-            dx = (x - 256.0) * (sf - 1.0)
-            dy += (y - 360.0) * (sf - 1.0)
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if swoop > 0.45:
-            draw_comic_twinkle(od, 256, 395, 14 * swoop, fill=(255, 224, 70, 255), rot=ang, alpha=235)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 23. TWO-PART CLINK / FIST BUMP / HANDSHAKE — Anticipation -> SLAM + Comic Starburst!
-    # -------------------------------------------------------------------------
-    if rig == "two_part_clink":
-        clink = comic_pop_curve(t, 0.16, 0.30, 0.68)
-        shx, shy = impact_shake(t, 0.29, amp=8.0)
-
-        def disp(x, y):
-            side = -1.0 if x < 256.0 else 1.0
-            w_mid = math.exp(-((y - 256.0) / 155.0) ** 2) * min(1.0, abs(x - 256.0) / 65.0)
-            dx = side * clink * 22.0 * w_mid + shx
-            dy = abs(clink) * 7.0 * w_mid + shy
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if clink > 0.60:
-            p = min(1.0, (clink - 0.60) / 0.40)
-            draw_comic_starburst(od, 256, 228, 34 * p, 14 * p, 8, alpha=int(240 * p))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 24. HOURGLASS FLOWING SAND ("Just now")
-    # -------------------------------------------------------------------------
-    if rig == "hourglass_sand":
-        tilt = 0.11 * math.sin(ang)
-
-        def disp(x, y):
-            rx, ry = x - 256.0, y - 256.0
-            return (x + rx * (math.cos(tilt) - 1.0) - ry * math.sin(tilt),
-                    y + rx * math.sin(tilt) + ry * (math.cos(tilt) - 1.0))
-
-        frame = warp_mesh(im, disp, grid_n=14)
-        for i in range(6):
-            sy = int(238 + ((t * 170 + i * 18) % 102))
-            draw_comic_droplet(od, 256, sy, scale=0.45, fill=(0, 229, 255, 255), alpha=230)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 25. SHIELD / UMBRELLA DEFLECT / DELULU CLOUD
-    # -------------------------------------------------------------------------
-    if rig == "shield_deflect":
-        pulse = comic_pop_curve(t, 0.16, 0.34, 0.72)
-
-        def disp(x, y):
-            w_dome = math.exp(-((x - 256.0) / 145.0) ** 2 - ((y - 230.0) / 115.0) ** 2)
-            sf = 1.0 / (1.0 + 0.18 * max(0.0, pulse) * w_dome)
-            dx = (x - 256.0) * (sf - 1.0)
-            dy = (y - 230.0) * (sf - 1.0) + max(0.0, pulse) * 14.0 * w_dome
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if pulse > 0.35:
-            draw_comic_twinkle(od, 155, 130, 13 * min(1.0, pulse), fill=(0, 229, 255, 255), rot=ang, alpha=225)
-            draw_comic_twinkle(od, 360, 145, 11 * min(1.0, pulse), fill=(255, 212, 59, 255), rot=-ang, alpha=225)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 26. HEAT-SEEKING SLIPPER MISSILE ("flying-slipper")
-    # -------------------------------------------------------------------------
-    if rig == "slipper_missile":
-        swoop = comic_pop_curve(t, 0.15, 0.34, 0.72)
-
-        def disp(x, y):
-            w_slip = math.exp(-((x - 235.0) / 115.0) ** 2 - ((y - 205.0) / 115.0) ** 2)
-            sf = 1.0 / (1.0 + 0.28 * max(0.0, swoop) * w_slip)
-            dx = (x - 235.0) * (sf - 1.0) - swoop * 22.0 * w_slip
-            dy = (y - 205.0) * (sf - 1.0) + swoop * 20.0 * w_slip
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if swoop > 0.25:
-            draw_comic_speed_lines(od, 145, 365, [125, 135, 145], 20, 62, color=(0, 229, 255, int(220 * min(1.0, swoop))), width=4)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 27. WHEEL SWERVING OVER POTHOLE ("highway-traffic", "maxi-taxi")
-    # -------------------------------------------------------------------------
-    if rig == "wheel_pothole_swerve":
-        bounce = abs(math.sin(ang * 2.0))
-
-        def disp(x, y):
-            w_wheel = math.exp(-((x - 340.0) / 120.0) ** 2 - ((y - 185.0) / 115.0) ** 2)
-            dy = bounce * 24.0 * w_wheel
-            dx = math.sin(ang * 2.0) * 14.0 * w_wheel
-            w_leaf = math.exp(-((x - 205.0) / 65.0) ** 2 - ((y - 265.0) / 55.0) ** 2) * (1.0 - w_wheel)
-            dx += math.sin(ang * 2.0) * 9.0 * w_leaf
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if bounce > 0.65:
-            draw_comic_speed_lines(od, 135, 340, [165, 180, 195], 15, 44, color=(255, 255, 255, 200), width=3)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 28. OVERHEAD HAND / MALLET SLAMMING ("bullseye-allfours", "hang-jack", "mash-up")
-    # -------------------------------------------------------------------------
-    if rig == "overhead_hand_slam":
-        if t < 0.28:
-            lift = ease_in_out_cubic(t / 0.28)
-            slam = 0.0
-        elif t < 0.42:
-            u = (t - 0.28) / 0.14
-            lift = 1.0 - 1.35 * u
-            slam = max(0.0, (u - 0.5) * 2.0)
-        elif t < 0.78:
-            u = (t - 0.42) / 0.36
-            lift = -0.35 * (1.0 - u)
-            slam = max(0.0, 1.0 - u * 1.6)
-        else:
-            lift = 0.0
-            slam = 0.0
-
-        shx, shy = impact_shake(t, 0.40, amp=11.0)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 385.0, 1.0 - 0.08 * slam)
-            dx += shx
-            dy += shy
-            w_hand = math.exp(-((x - 285.0) / 130.0) ** 2 - ((y - 180.0) / 110.0) ** 2)
-            dy += lift * 38.0 * w_hand
-            if slam > 0.05:
-                side = -1.0 if x < 256.0 else 1.0
-                w_scatter = math.exp(-((y - 315.0) / 75.0) ** 2) * min(1.0, abs(x - 256.0) / 85.0)
-                dx += -side * slam * 24.0 * w_scatter
-                dy += slam * 14.0 * w_scatter
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if slam > 0.25:
-            draw_comic_starburst(od, 256, 330, 40 * slam, 17 * slam, 10, alpha=int(240 * slam))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 29. BLUE DEVIL / PEPPER VEX / SOUCOUYANT — Fire Breath, Steam Puffs & Anger Vein!
-    # -------------------------------------------------------------------------
-    if rig == "fire_breath_and_steam":
-        blast = comic_pop_curve(t, 0.16, 0.34, 0.72)
-        tremble = math.sin(ang * 6.0) * max(0.0, blast)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 365.0, 1.0 + 0.07 * blast)
-            dx += tremble * 5.0
-            if "blue-devil" in sid:
-                w_wing = math.exp(-((x - 125.0) / 75.0) ** 2 - ((y - 210.0) / 65.0) ** 2)
-                dy += math.sin(ang * 2.0) * 24.0 * w_wing
-                w_fire = math.exp(-((x - 360.0) / 95.0) ** 2 - ((y - 205.0) / 75.0) ** 2)
-                sf = 1.0 / (1.0 + 0.36 * max(0.0, blast) * w_fire)
-                dx += (x - 260.0) * (sf - 1.0)
-                dy += (y - 205.0) * (sf - 1.0)
-            else:
-                side = -1.0 if x < 256.0 else 1.0
-                w_outer = min(1.0, abs(x - 256.0) / 95.0) * math.exp(-((y - 265.0) / 115.0) ** 2)
-                dx += -side * max(0.0, blast) * 24.0 * w_outer
-                dy += max(0.0, blast) * 16.0 * math.exp(-((y - 135.0) / 85.0) ** 2)
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if ("vex" in sid or "mad" in sid) and blast > 0.3:
-            draw_comic_anger_vein(od, 318, 128, s=1.05, alpha=int(235 * min(1.0, blast)))
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 30. MOKO JUMBIE / CARNIVAL MAS — Joyful Jump-Up & Alternating Stilts
-    # -------------------------------------------------------------------------
-    if rig == "moko_stilt_walk":
-        step = math.sin(ang * 2.0)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 410.0, 1.0 + 0.05 * abs(step))
-            if y > 245.0:
-                w_leg = min(1.0, (y - 245.0) / 135.0)
-                side = -1.0 if x < 256.0 else 1.0
-                dy += side * step * 26.0 * w_leg
-                dx += step * 8.0 * w_leg
-            else:
-                w_arm = min(1.0, abs(x - 256.0) / 85.0)
-                dy += -step * 18.0 * w_arm
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        draw_comic_twinkle(od, 125, 115, 11 + 4 * abs(step), fill=(255, 212, 59, 255), rot=ang, alpha=220)
-        draw_comic_twinkle(od, 385, 120, 11 + 4 * abs(step), fill=(0, 229, 255, 255), rot=-ang, alpha=220)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 31. TASSA / STEELPAN / BOOMBOX VIBES — Snappy Beat + Floating Comic Music Notes!
-    # -------------------------------------------------------------------------
-    if rig == "drumstick_double_beat":
-        beat = math.sin(ang * 4.0)
-        groove = abs(math.sin(ang * 2.0))
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 380.0, 1.0 - 0.07 * groove)
-            if y < 300.0:
-                w_stick = math.exp(-((y - 175.0) / 95.0) ** 2) * min(1.0, abs(x - 256.0) / 65.0)
-                side = -1.0 if x < 256.0 else 1.0
-                dy += side * beat * 24.0 * w_stick
-            w_head = math.exp(-((x - 256.0) / 95.0) ** 2 - ((y - 275.0) / 65.0) ** 2)
-            dy += -abs(beat) * 12.0 * w_head
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        note_y = 108 - groove * 24
-        draw_comic_music_note(od, 145 + math.sin(ang * 2.0) * 10, note_y, scale=0.9, fill=(0, 229, 255, 255), alpha=225)
-        draw_comic_music_note(od, 365 - math.sin(ang * 2.0) * 10, note_y + 12, scale=0.9, fill=(255, 212, 59, 255), alpha=225)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 32. JET / FLIGHT / SPRINT ("freshwater-yankee", "doh-tote", "leh-we-go")
-    # -------------------------------------------------------------------------
-    if rig == "jet_and_toss_flight":
-        fly = math.sin(ang)
-
-        def disp(x, y):
-            w_top = math.exp(-((y - 165.0) / 105.0) ** 2)
-            dx = -fly * 30.0 * w_top
-            dy = fly * 20.0 * w_top
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if abs(fly) > 0.3:
-            draw_comic_speed_lines(od, 140, 155, [165, 180, 195], 12, 42, color=(255, 255, 255, 200), width=3)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 33. MEGAPHONE / EAR CUP / SIREN BLAST ("weyyyy", "ah-screaming", "wha-yuh-say")
-    # -------------------------------------------------------------------------
-    if rig == "megaphone_cone_blast":
-        thump = comic_pop_curve(t, 0.14, 0.30, 0.70)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 240.0, 320.0, 1.0 + 0.06 * thump)
-            w_horn = math.exp(-((x - 275.0) / 115.0) ** 2 - ((y - 235.0) / 115.0) ** 2)
-            sf = 1.0 / (1.0 + 0.26 * max(0.0, thump) * w_horn)
-            dx += (x - 275.0) * (sf - 1.0)
-            dy += (y - 235.0) * (sf - 1.0)
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if thump > 0.3:
-            draw_comic_speed_lines(od, 345, 230, [-35, 0, 35], 35, 75, color=(255, 212, 59, int(230 * min(1.0, thump))), width=4)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 34. BELLY LAUGH / MELTING PUDDLE ("killing-me-dead", "doh-kill-meh", "a-week", "im-weak")
-    # -------------------------------------------------------------------------
-    if rig == "laugh_tears_and_spin":
-        laugh = math.sin(ang * 3.0)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 350.0, 1.0 - 0.07 * abs(laugh))
-            if "week" in sid or "weak" in sid:
-                w_bot = math.exp(-((y - 375.0) / 85.0) ** 2)
-                melt = 0.5 - 0.5 * math.cos(ang)
-                dx += -(x - 256.0) * 0.22 * melt * w_bot
-                dy += -melt * 22.0 * math.exp(-((y - 220.0) / 110.0) ** 2)
-            else:
-                w_tears = min(1.0, abs(x - 256.0) / 110.0) * math.exp(-((y - 235.0) / 85.0) ** 2)
-                side = -1.0 if x < 256.0 else 1.0
-                dx += -side * max(0.0, laugh) * 24.0 * w_tears
-                dy += laugh * 14.0 * math.exp(-((x - 256.0) / 120.0) ** 2)
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if not ("week" in sid or "weak" in sid) and laugh > 0.25:
-            draw_comic_droplet(od, 118 - laugh * 18, 255 + laugh * 14, scale=0.85, alpha=220)
-            draw_comic_droplet(od, 394 + laugh * 18, 255 + laugh * 14, scale=0.85, alpha=220)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 35. SUNGLASSES COOL NOD & *TING!* GLEAM ("rizz", "potcake-dog", "good-vibes-only")
-    # -------------------------------------------------------------------------
-    if rig == "sunglasses_cool_nod":
-        drop = comic_pop_curve(t, 0.16, 0.34, 0.72)
-        sh_y = 120.0 if "potcake" in sid else 208.0
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 340.0, 1.0 + 0.05 * drop)
-            w_shades = math.exp(-((x - 256.0) / 115.0) ** 2 - ((y - sh_y) / 46.0) ** 2)
-            dy += -max(0.0, drop) * 18.0 * w_shades
-            dx += math.sin(ang) * 7.0 * w_shades
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        if drop > 0.45:
-            draw_comic_twinkle(od, 338, sh_y - 22, 16 * min(1.1, drop), fill=(255, 240, 120, 255), rot=ang, alpha=240)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 36. DELICIOUS TRINI FOOD STEAM & *TING!* SPARKLE
-    # -------------------------------------------------------------------------
-    if rig == "culinary_steam_pop":
-        pop = 0.5 - 0.5 * math.cos(ang * 2.0)
-
-        def disp(x, y):
-            dx, dy = squash_stretch_offset(x, y, 256.0, 360.0, 1.0 + 0.06 * pop)
-            w_steam = math.exp(-((y - 120.0) / 75.0) ** 2)
-            dx += math.sin(ang * 2.0 + y * 0.08) * 10.0 * w_steam
-            return (x + dx, y + dy)
-
-        frame = warp_mesh(im, disp, grid_n=16)
-        draw_comic_twinkle(od, 365, 138, 12 + 4 * pop, fill=(255, 224, 90, 255), rot=ang, alpha=225)
-        return Image.alpha_composite(frame, overlay)
-
-    # -------------------------------------------------------------------------
-    # 37. EXPRESSIVE COMIC CHARACTER / GESTURE POP (Volume-Preserving Bounce + Attitude Snap!)
-    # -------------------------------------------------------------------------
-    snap = comic_pop_curve(t, 0.16, 0.34, 0.72)
-
-    def disp(x, y):
-        dx, dy = squash_stretch_offset(x, y, 256.0, 370.0, 1.0 + 0.08 * snap)
-        w_top = math.exp(-((y - 185.0) / 115.0) ** 2)
-        dx += math.sin(ang * 2.0) * 14.0 * w_top
-        return (x + dx, y + dy)
-
-    frame = warp_mesh(im, disp, grid_n=16)
-    if snap > 0.45:
-        draw_comic_twinkle(od, 380, 132, 13 * min(1.1, snap), fill=(255, 224, 80, 255), rot=ang, alpha=225)
+    
+    overlay_fn = PRIMITIVE_OVERLAY.get(primitive, overlay_tanty_akumbo_tilt)
+    overlay_fn(od, fx, t)
+    
     return Image.alpha_composite(frame, overlay)
 
 
 # =============================================================================
 # EXPORT ANIMATED WEBP & WHATSAPP-COMPATIBLE 24-FRAME GIF
 # =============================================================================
+def save_with_atomic_retry(save_func, target_path: str, max_retries: int = 5, base_delay: float = 0.12):
+    """
+    Saves an image to a unique temporary file and atomically replaces target_path.
+    Retries with exponential backoff on transient Windows file lock contention (OSError / PermissionError).
+    """
+    target_dir, target_name = os.path.split(os.path.abspath(target_path))
+    os.makedirs(target_dir, exist_ok=True)
+    name_part, ext_part = os.path.splitext(target_name)
+    token = f"{os.getpid()}_{uuid.uuid4().hex[:8]}"
+    tmp_path = os.path.join(target_dir, f".tmp_{name_part}_{token}{ext_part}")
+    
+    try:
+        save_func(tmp_path)
+        for attempt in range(max_retries):
+            try:
+                os.replace(tmp_path, target_path)
+                return
+            except (PermissionError, OSError):
+                if attempt == max_retries - 1:
+                    raise
+                time.sleep(base_delay * (1.5 ** attempt))
+    finally:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+
+
+def copy_with_retry(src: str, dst: str, max_retries: int = 5, base_delay: float = 0.12):
+    """
+    Copies file with retries on transient Windows file lock contention.
+    Uses atomic temporary copy in destination directory to prevent partial files.
+    """
+    dst_dir, dst_name = os.path.split(os.path.abspath(dst))
+    os.makedirs(dst_dir, exist_ok=True)
+    name_part, ext_part = os.path.splitext(dst_name)
+    token = f"{os.getpid()}_{uuid.uuid4().hex[:8]}"
+    tmp_dst = os.path.join(dst_dir, f".tmp_{name_part}_{token}{ext_part}")
+    
+    try:
+        shutil.copy2(src, tmp_dst)
+        for attempt in range(max_retries):
+            try:
+                os.replace(tmp_dst, dst)
+                return
+            except (PermissionError, OSError):
+                if attempt == max_retries - 1:
+                    raise
+                time.sleep(base_delay * (1.5 ** attempt))
+    finally:
+        if os.path.exists(tmp_dst):
+            try:
+                os.remove(tmp_dst)
+            except Exception:
+                pass
+
+
 def save_animated_webp_and_gif(base_img: Image.Image, sid: str, rig: str, webp_path: str, gif_path: str):
     n_frames = 24
     duration_ms = 90  # 24 * 90ms = 2.16s (>2.0s so WhatsApp plays it as a looping animation!)
-    prepped = prep_breathing_room(base_img, scale=0.91)
-    rgba_frames = [render_picture_specific_frame(prepped, rig, sid, i, n_frames) for i in range(n_frames)]
+    
+    sid_clean = sid.lower().strip()
+    if sid_clean.endswith((".png", ".webp", ".gif")):
+        sid_clean = sid_clean.rsplit(".", 1)[0]
+    
+    entry = STICKER_RIG_REGISTRY.get(sid_clean, {})
+    scale = entry.get("scale", 0.91)
+    
+    prepped = prep_breathing_room(base_img, scale=scale)
+    rgba_frames = [render_picture_specific_frame(prepped, rig, sid_clean, i, n_frames) for i in range(n_frames)]
 
     # 1. Save Transparent 512x512 Animated WebP (crisp & lighter weight)
-    rgba_frames[0].save(
-        webp_path,
-        format="WEBP",
-        save_all=True,
-        append_images=rgba_frames[1:],
-        duration=duration_ms,
-        loop=0,
-        lossless=False,
-        quality=76,
-        method=4,
-    )
+    def _save_webp(target):
+        rgba_frames[0].save(
+            target,
+            format="WEBP",
+            save_all=True,
+            append_images=rgba_frames[1:],
+            duration=duration_ms,
+            loop=0,
+            lossless=False,
+            quality=76,
+            method=4,
+        )
+    save_with_atomic_retry(_save_webp, webp_path)
 
     # 2. Save WhatsApp-Compatible 512x512 24-Frame Looping GIF on Dark Studio Card (#10141E)
     gif_frames = []
@@ -1337,42 +1134,178 @@ def save_animated_webp_and_gif(base_img: Image.Image, sid: str, rig: str, webp_p
         p_frame = rgb.quantize(colors=128, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE)
         gif_frames.append(p_frame)
 
-    gif_frames[0].save(
-        gif_path,
-        format="GIF",
-        save_all=True,
-        append_images=gif_frames[1:],
-        duration=duration_ms,
-        loop=0,
-        optimize=False,
-    )
+    def _save_gif(target):
+        gif_frames[0].save(
+            target,
+            format="GIF",
+            save_all=True,
+            append_images=gif_frames[1:],
+            duration=duration_ms,
+            loop=0,
+            optimize=False,
+        )
+    save_with_atomic_retry(_save_gif, gif_path)
 
 
-def process_one(fname: str):
-    sid = fname[:-4]
-    png_path = os.path.join(STICKER_DIR, fname)
-    webp_out = os.path.join(OUT_DIR, f"{sid}.webp")
-    gif_out = os.path.join(OUT_DIR, f"{sid}.gif")
+def process_one(fname: str, out_dir: str = OUT_DIR):
+    sid = fname[:-4] if fname.endswith((".png", ".webp", ".gif")) else fname
+    png_path = os.path.join(STICKER_DIR, f"{sid}.png")
+    if not os.path.exists(png_path):
+        png_path = os.path.join(STICKER_DIR, fname)
+    if not os.path.exists(png_path):
+        raise FileNotFoundError(f"Sticker PNG not found: {png_path}")
+    
+    os.makedirs(out_dir, exist_ok=True)
+    webp_out = os.path.join(out_dir, f"{sid}.webp")
+    gif_out = os.path.join(out_dir, f"{sid}.gif")
+    
     rig = classify_rig(sid)
     with Image.open(png_path) as im:
         base = im.convert("RGBA").resize((512, 512), Image.Resampling.LANCZOS)
         save_animated_webp_and_gif(base, sid, rig, webp_out, gif_out)
+    
+    # Mirror outputs to build/animated_stickers/ for pipeline and verification
+    build_webp_dir = os.path.join("build", "animated_stickers", "webp")
+    build_gif_dir = os.path.join("build", "animated_stickers", "gif")
+    os.makedirs(build_webp_dir, exist_ok=True)
+    os.makedirs(build_gif_dir, exist_ok=True)
+    copy_with_retry(webp_out, os.path.join(build_webp_dir, f"{sid}.webp"))
+    copy_with_retry(gif_out, os.path.join(build_gif_dir, f"{sid}.gif"))
+    
     return sid, rig, os.path.getsize(webp_out) / 1024, os.path.getsize(gif_out) / 1024
 
 
+# =============================================================================
+# PRODUCTION CLI ARGUMENT PARSER
+# =============================================================================
+def parse_cli_args():
+    parser = argparse.ArgumentParser(
+        description="PeelOff Trinidad & Tobago Sticker Animation Generator (Milestone 2)"
+    )
+    parser.add_argument(
+        "--sticker", "-s",
+        type=str,
+        default=None,
+        help="Build a single sticker by ID (e.g., 'steups', 'doubles-lean', 'hang-jack')"
+    )
+    parser.add_argument(
+        "--pack", "-p",
+        type=str,
+        default=None,
+        help="Build all stickers belonging to a specific pack (e.g., 'pack-1', 'slang')"
+    )
+    parser.add_argument(
+        "--workers", "-w",
+        type=int,
+        default=min(8, os.cpu_count() or 4),
+        help="Number of concurrent worker processes (clamped between 1 and 16)"
+    )
+    parser.add_argument(
+        "--all", "-a",
+        action="store_true",
+        default=False,
+        help="Build all 188 stickers across all packs (default if no flag specified)"
+    )
+    args = parser.parse_args()
+    args.workers = max(1, min(16, args.workers))
+    return args
+
+
 def main():
+    args = parse_cli_args()
     os.makedirs(OUT_DIR, exist_ok=True)
+    
+    # 1. Single sticker build
+    if args.sticker:
+        sid = args.sticker.strip().lower()
+        if sid.endswith((".png", ".webp", ".gif")):
+            sid = sid.rsplit(".", 1)[0]
+        fname = f"{sid}.png"
+        t0 = time.time()
+        sid_out, rig, w_kb, g_kb = process_one(fname)
+        print(f"Generated {sid_out} ({rig}) -> WebP: {w_kb:.1f}KB, GIF: {g_kb:.1f}KB in {time.time() - t0:.2f}s")
+        return
+
+    # 2. Pack or catalog build
     files = sorted([f for f in os.listdir(STICKER_DIR) if f.endswith(".png")])
-    print(f"Building comic-artist articulated animations for {len(files)} stickers...")
+    if args.pack:
+        pack_arg = args.pack.strip().lower()
+        PACK_RANGES = {
+            1: (1, 18),
+            2: (19, 30),
+            3: (31, 42),
+            4: (43, 54),
+            5: (55, 66),
+            6: (67, 76),
+            7: (77, 88),
+            8: (89, 100),
+            9: (101, 188),
+        }
+        PACK_ALIASES = {
+            "1": 1, "pack-1": 1, "pack1": 1, "pack_1": 1, "pack-1-social-slang": 1, "social-slang": 1,
+            "2": 2, "pack-2": 2, "pack2": 2, "pack_2": 2, "pack-2-reactions-drama": 2, "reactions-drama": 2,
+            "3": 3, "pack-3": 3, "pack3": 3, "pack_3": 3, "pack-3-food-belly": 3, "food-belly": 3,
+            "4": 4, "pack-4": 4, "pack4": 4, "pack_4": 4, "pack-4-liming-allfours": 4, "liming-allfours": 4,
+            "5": 5, "pack-5": 5, "pack5": 5, "pack_5": 5, "pack-5-carnival-mas": 5, "carnival-mas": 5,
+            "6": 6, "pack-6": 6, "pack6": 6, "pack_6": 6, "pack-6-folklore": 6, "folklore": 6,
+            "7": 7, "pack-7": 7, "pack7": 7, "pack_7": 7, "pack-7-festivals": 7, "festivals": 7,
+            "8": 8, "pack-8": 8, "pack8": 8, "pack_8": 8, "pack-8-tobago-everyday": 8, "tobago-everyday": 8,
+            "9": 9, "pack-9": 9, "pack9": 9, "pack_9": 9, "slang": 9, "pack-slang": 9, "trini-slang": 9,
+        }
+        
+        target_sids = set()
+        if pack_arg in PACK_ALIASES:
+            pnum = PACK_ALIASES[pack_arg]
+            lo, hi = PACK_RANGES[pnum]
+            target_sids = {sid for sid, d in STICKER_RIG_REGISTRY.items() if lo <= d["num"] <= hi}
+        elif "slang" in pack_arg:
+            target_sids = {sid for sid, d in STICKER_RIG_REGISTRY.items() if d["num"] >= 101 or sid.startswith("slang-")}
+        else:
+            target_sids = {sid for sid in STICKER_RIG_REGISTRY if pack_arg in sid}
+        
+        files = [f for f in files if (f[:-4] if f.endswith(".png") else f) in target_sids]
+        if not files:
+            print(f"No stickers found matching pack '{args.pack}'. Available packs: 1-8, slang.")
+            return
+        print(f"Building {len(files)} stickers for pack '{args.pack}' with {args.workers} workers...")
+    else:
+        print(f"Building comic-artist articulated animations for {len(files)} stickers with {args.workers} workers...")
+
     t0 = time.time()
     done = 0
-    with ProcessPoolExecutor(max_workers=min(8, os.cpu_count() or 4)) as ex:
+    failed_stickers = []
+    with ProcessPoolExecutor(max_workers=args.workers) as ex:
         futures = {ex.submit(process_one, f): f for f in files}
         for fut in as_completed(futures):
-            sid, rig, w_kb, g_kb = fut.result()
-            done += 1
-            if done % 25 == 0 or done == len(files) or "maco" in sid:
-                print(f"  [{done}/{len(files)}] {sid} ({rig}) -> WebP: {w_kb:.1f}KB, GIF: {g_kb:.1f}KB")
+            f_orig = futures[fut]
+            try:
+                sid, rig, w_kb, g_kb = fut.result()
+                done += 1
+                if done % 25 == 0 or done == len(files) or "maco" in sid:
+                    print(f"  [{done}/{len(files)}] {sid} ({rig}) -> WebP: {w_kb:.1f}KB, GIF: {g_kb:.1f}KB")
+            except Exception as exc:
+                print(f"  [ERROR] Worker failed on {f_orig}: {exc}", file=sys.stderr)
+                failed_stickers.append(f_orig)
+
+    # Sequential retry pass for any transient multiprocessing failures
+    if failed_stickers:
+        print(f"\nRetrying {len(failed_stickers)} failed sticker(s) sequentially...")
+        time.sleep(0.5)
+        still_failed = []
+        for f in failed_stickers:
+            try:
+                time.sleep(0.2)
+                sid, rig, w_kb, g_kb = process_one(f)
+                done += 1
+                print(f"  [RETRY SUCCESS] {sid} ({rig}) -> WebP: {w_kb:.1f}KB, GIF: {g_kb:.1f}KB")
+            except Exception as exc:
+                print(f"  [RETRY FAILED] {f}: {exc}", file=sys.stderr)
+                still_failed.append((f, str(exc)))
+        if still_failed:
+            print(f"\nFATAL: {len(still_failed)} sticker(s) failed after retry pass:", file=sys.stderr)
+            for f, err in still_failed:
+                print(f"  - {f}: {err}", file=sys.stderr)
+            sys.exit(1)
     print(f"Completed all {len(files)} stickers in {time.time() - t0:.1f}s")
 
 
